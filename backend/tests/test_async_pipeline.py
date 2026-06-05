@@ -10,7 +10,7 @@ Covers:
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
@@ -59,6 +59,16 @@ class TestCeleryApp:
         # Task is registered with name "analyze_pcap"
         assert analyze_pcap_task.name == "analyze_pcap"
         assert "analyze_pcap" in celery_app.tasks
+
+    def test_cleanup_task_registered(self):
+        import backend.worker.tasks.storage_cleanup  # noqa: F401
+
+        assert "cleanup_expired_pcaps" in celery_app.tasks
+
+    def test_cleanup_beat_schedule_registered(self):
+        schedule = celery_app.conf.beat_schedule
+        assert "cleanup-expired-pcaps" in schedule
+        assert schedule["cleanup-expired-pcaps"]["task"] == "cleanup_expired_pcaps"
 
 
 # ---------------------------------------------------------------------------
@@ -514,3 +524,52 @@ class TestAssessmentWriter:
             db.commit()
             assert row.model_name == "template"
             assert "fallback_used=True" in row.raw_response
+
+
+# ---------------------------------------------------------------------------
+# storage lifecycle unit tests
+# ---------------------------------------------------------------------------
+
+
+class TestStorageLifecycle:
+    def test_cleanup_expired_pcaps_deletes_file_and_soft_deletes_row(self, tmp_path):
+        from backend.storage.lifecycle import cleanup_expired_pcaps
+        from backend.storage.models import Base, PcapFile
+
+        engine = create_engine("sqlite:///:memory:")
+        Base.metadata.create_all(engine)
+        SessionLocal = sessionmaker(bind=engine)
+
+        artifact_dir = tmp_path / "ab"
+        artifact_dir.mkdir()
+        artifact = artifact_dir / ("a" * 64 + ".pcap")
+        artifact.write_bytes(b"pcap")
+
+        pcap_id = uuid4()
+        with SessionLocal() as db:
+            db.add(
+                PcapFile(
+                    id=pcap_id,
+                    filename="abc.pcap",
+                    original_name="test.pcap",
+                    file_size=4,
+                    sha256="a" * 64,
+                    storage_key=f"ab/{artifact.name}",
+                    status="completed",
+                    uploaded_at=datetime.utcnow() - timedelta(days=10),
+                    expires_at=datetime.utcnow() - timedelta(days=1),
+                )
+            )
+            db.commit()
+
+            summary = cleanup_expired_pcaps(db, tmp_path)
+
+            row = db.get(PcapFile, pcap_id)
+            assert summary["expired_found"] == 1
+            assert summary["files_deleted"] == 1
+            assert summary["rows_soft_deleted"] == 1
+            assert artifact.exists() is False
+            assert row.status == "deleted"
+            assert row.deleted_at is not None
+
+        engine.dispose()

@@ -61,6 +61,15 @@ class PcapFile(Base):
     uploaded_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow
     )
+    last_accessed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     uploaded_by: Mapped[UUID | None] = mapped_column(
         PG_UUID(as_uuid=True), nullable=True
     )
@@ -91,11 +100,13 @@ class PcapFile(Base):
     __table_args__ = (
         CheckConstraint(
             "status IN ('queued','parsing','extracting','detecting',"
-            "'assessing','completed','failed','uploaded')",
+            "'assessing','completed','failed','uploaded','deleted')",
             name="ck_pcap_files_status",
         ),
         Index("idx_pcap_files_status", "status"),
         Index("idx_pcap_files_uploaded_at", "uploaded_at"),
+        Index("idx_pcap_files_expires_at", "expires_at"),
+        Index("idx_pcap_files_deleted_at", "deleted_at"),
     )
 
 

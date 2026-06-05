@@ -13,11 +13,12 @@ Upload flow:
 
 import hashlib
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -96,6 +97,9 @@ async def upload_pcap(
             job_id=latest_job.id if latest_job else None,
             deduplicated=True,
             uploaded_at=existing.uploaded_at,
+            last_accessed_at=existing.last_accessed_at,
+            expires_at=existing.expires_at,
+            deleted_at=existing.deleted_at,
         )
 
     # Persist to disk
@@ -122,6 +126,7 @@ async def upload_pcap(
         storage_key=storage_key,
         status="uploaded",
         uploaded_at=datetime.utcnow(),
+        expires_at=datetime.utcnow() + timedelta(days=settings.storage_retention_days),
     )
     db.add(pcap)
     await db.flush()  # populate pcap.id
@@ -174,6 +179,46 @@ async def upload_pcap(
         job_id=job.id,
         deduplicated=False,
         uploaded_at=pcap.uploaded_at,
+        last_accessed_at=pcap.last_accessed_at,
+        expires_at=pcap.expires_at,
+        deleted_at=pcap.deleted_at,
+    )
+
+
+@router.get("/{pcap_id}/download")
+async def download_pcap(
+    pcap_id: UUID,
+    db: AsyncSession = Depends(get_db_session),
+) -> FileResponse:
+    """Download the stored PCAP/PCAPNG artifact for a PCAP row."""
+    settings = get_settings()
+    pcap_res = await db.execute(select(PcapFile).where(PcapFile.id == pcap_id))
+    pcap = pcap_res.scalar_one_or_none()
+    if pcap is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"PCAP {pcap_id} not found",
+        )
+    if pcap.status == "deleted" or pcap.deleted_at is not None:
+        raise HTTPException(
+            status_code=status.HTTP_410_GONE,
+            detail=f"PCAP {pcap_id} has been deleted by retention policy",
+        )
+
+    target = settings.upload_dir / pcap.storage_key
+    if not target.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"PCAP file is missing on disk: {pcap.storage_key}",
+        )
+
+    pcap.last_accessed_at = datetime.utcnow()
+    await db.commit()
+
+    return FileResponse(
+        path=target,
+        filename=pcap.original_name,
+        media_type=pcap.mime_type or "application/vnd.tcpdump.pcap",
     )
 
 
@@ -212,6 +257,9 @@ async def get_pcap(
         start_time=pcap.start_time,
         end_time=pcap.end_time,
         uploaded_at=pcap.uploaded_at,
+        last_accessed_at=pcap.last_accessed_at,
+        expires_at=pcap.expires_at,
+        deleted_at=pcap.deleted_at,
         error_message=pcap.error_message,
         analysis_jobs=[JobSummary.model_validate(j) for j in jobs],
     )

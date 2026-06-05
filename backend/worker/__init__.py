@@ -24,6 +24,13 @@ celery_app.conf.update(
     task_track_started=True,
     worker_prefetch_multiplier=1,
     broker_connection_retry_on_startup=True,
+    beat_schedule={
+        "cleanup-expired-pcaps": {
+            "task": "cleanup_expired_pcaps",
+            "schedule": settings.storage_cleanup_schedule_seconds,
+            "args": (),
+        }
+    },
 )
 
 # Auto-discover tasks in the tasks package

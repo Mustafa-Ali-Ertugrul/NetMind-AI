@@ -5,10 +5,12 @@ endpoint that returns the full analysis bundle (findings + AI).
 """
 
 import logging
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -110,6 +112,23 @@ async def get_job_result(
         pcap_id=job.pcap_id,
         alerts=alert_responses,
         ai_assessment=assessment_dict,
+    )
+
+
+@router.get("/{job_id}/report")
+async def download_job_report(
+    job_id: UUID,
+    db: AsyncSession = Depends(get_db_session),
+) -> JSONResponse:
+    """Return a downloadable JSON analysis report for a completed job."""
+    result = await get_job_result(job_id, db)
+    payload = result.model_dump(mode="json")
+    payload["generated_at"] = datetime.utcnow().isoformat() + "Z"
+    payload["report_version"] = "1.0"
+    return JSONResponse(
+        content=payload,
+        media_type="application/json",
+        headers={"Content-Disposition": f'attachment; filename="netmind-report-{job_id}.json"'},
     )
 
 

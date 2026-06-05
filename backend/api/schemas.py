@@ -30,6 +30,9 @@ class UploadResponse(BaseModel):
     job_id: UUID | None = None
     deduplicated: bool = False
     uploaded_at: datetime
+    last_accessed_at: datetime | None = None
+    expires_at: datetime | None = None
+    deleted_at: datetime | None = None
     note: str = Field(default="Async analysis job enqueued. Poll GET /api/v1/jobs/{id} for status.")
 
 
@@ -79,6 +82,9 @@ class PcapDetailResponse(BaseModel):
     start_time: datetime | None = None
     end_time: datetime | None = None
     uploaded_at: datetime
+    last_accessed_at: datetime | None = None
+    expires_at: datetime | None = None
+    deleted_at: datetime | None = None
     error_message: str | None = None
     analysis_jobs: list[JobSummary] = Field(default_factory=list)
 
