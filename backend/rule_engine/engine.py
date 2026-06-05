@@ -3,9 +3,9 @@
 import logging
 from uuid import UUID
 
-from contracts.enums import RiskLabel, Severity
-from contracts.features import AggregatedFeatures
-from contracts.findings import Finding, OverallRiskScore
+from backend.contracts.enums import RiskLabel, Severity
+from backend.contracts.features import AggregatedFeatures
+from backend.contracts.findings import Finding, OverallRiskScore
 
 from .registry import RuleRegistry
 from .rules import (

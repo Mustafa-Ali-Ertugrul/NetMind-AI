@@ -5,9 +5,9 @@ from ipaddress import IPv4Address, IPv6Address
 from math import log10
 from uuid import UUID
 
-from contracts.enums import Confidence, Severity
-from contracts.features import AggregatedFeatures
-from contracts.findings import Evidence, Finding
+from backend.contracts.enums import Confidence, Severity
+from backend.contracts.features import AggregatedFeatures
+from backend.contracts.findings import Evidence, Finding
 
 
 class BaseDetectionRule(ABC):

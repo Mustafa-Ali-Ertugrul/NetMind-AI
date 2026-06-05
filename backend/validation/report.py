@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from contracts.findings import Finding, OverallRiskScore
+from backend.contracts.findings import Finding, OverallRiskScore
 
 from .label_store import GroundTruth
 

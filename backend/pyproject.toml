@@ -1,7 +1,7 @@
 [project]
 name = "netmind-backend"
 version = "0.1.0"
-description = "NetMind AI backend - Phase 1 (storage + API skeleton)"
+description = "NetMind AI backend — PCAP ingestion, async rule engine (Celery+Redis), AI Assessor (Ollama), and job-poller REST API"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.110.0",
@@ -11,6 +11,7 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.27",
     "asyncpg>=0.29.0",
     "python-multipart>=0.0.9",
+    "psycopg2-binary>=2.9.9",
     "celery[redis]>=5.4.0",
     "redis>=5.0.0",
 ]

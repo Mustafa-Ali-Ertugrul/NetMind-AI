@@ -1,8 +1,8 @@
 """DNS Tunneling Detection Rule."""
 
-from contracts.enums import Confidence, Severity
-from contracts.features import AggregatedFeatures, DNSProfile
-from contracts.findings import Finding
+from backend.contracts.enums import Confidence, Severity
+from backend.contracts.features import AggregatedFeatures, DNSProfile
+from backend.contracts.findings import Finding
 
 from ..base_rule import BaseDetectionRule
 from ..thresholds import (

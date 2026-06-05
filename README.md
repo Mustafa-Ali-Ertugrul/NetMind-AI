@@ -2,7 +2,7 @@
 
 AI-powered network traffic analysis platform for cybersecurity analysts and network administrators. Runs entirely on Docker and uses local LLMs for security assessments.
 
-**Status:** Phase 1 — Backend Skeleton (runnable, `/health` returns 200, upload stub in place)
+**Status:** Sprint 5 — Async pipeline + AI Assessor shipped. Full-stack roadmap continues to production hardening and frontend.
 
 ---
 
@@ -12,7 +12,7 @@ AI-powered network traffic analysis platform for cybersecurity analysts and netw
 # 1. Copy environment template
 cp .env.example .env
 
-# 2. Start the stack
+# 2. Start the stack (4 services: db + redis + api + worker)
 docker compose up --build
 
 # 3. Verify health
@@ -24,41 +24,74 @@ Expected response:
 {
   "status": "ok",
   "app_name": "NetMind AI",
-  "app_version": "0.1.0",
-  "environment": "development",
   "database": "ok",
-  "timestamp": "2026-06-05T12:00:00Z"
+  "app_version": "0.1.0"
 }
 ```
 
-API documentation: <http://localhost:8000/docs>
+Upload a PCAP and poll for results:
+```bash
+# Upload
+curl -s -X POST http://localhost:8000/api/v1/pcaps \
+  -F "file=@sample.pcapng" | jq .
+# → { "job_id": "uuid...", "pcap_id": "uuid...", "status": "queued" }
+
+# Poll job status (every 1-2 seconds)
+curl -s http://localhost:8000/api/v1/jobs/<job_id> | jq .
+# → { "status": "parsing" | "extracting" | "detecting" | "assessing" | "completed" }
+
+# Get full result (alerts + AI assessment)
+curl -s http://localhost:8000/api/v1/jobs/<job_id>/result | jq .
+```
+
+API documentation (when running): <http://localhost:8000/docs>
 
 ---
 
-## What Works in Phase 1
+## What Works
 
-| Feature | Status |
+| Feature | Sprint | Status |
+|---|---|---|
+| PCAP/PCAPNG upload with SHA-256 dedup | 5 | ✓ |
+| Protocol parsing via tshark JSON streaming | 2 | ✓ |
+| Feature extraction (flows, DNS profiles, traffic baselines) | 3 | ✓ |
+| Rule engine — 4 detection rules (port scan, DNS tunneling, FTP brute force, SMTP abuse) | 3 | ✓ |
+| **Async pipeline** (Celery + Redis — parse → extract → detect → assess) | 5 | ✓ |
+| **AI Assessor** (Ollama, single LLM call, template fallback) | 4A | ✓ |
+| **Job polling API** (`GET /jobs/{id}`, `GET /jobs/{id}/result`) | 5 | ✓ |
+| Alert + AI Assessment persistence to PostgreSQL | 5 | ✓ |
+| 4 Docker containers: `db`, `redis`, `api`, `worker` | 5 | ✓ |
+| Validation suite (CTU-13 Scenario 1, Stratosphere Android) | 3.5 | ✓ |
+| Auto table creation on startup | 1 | ✓ |
+| Configuration via `.env` (pydantic-settings) | 1 | ✓ |
+| CORS middleware | 1 | ✓ |
+| OpenAPI / Swagger UI at `/docs` | 1 | ✓ |
+
+## What Does Not Work Yet
+
+| Feature | Planned Sprint |
 |---|---|
-| FastAPI application with lifespan management | ✓ |
-| PostgreSQL 16 with async SQLAlchemy | ✓ |
-| Auto table creation on startup | ✓ |
-| Configuration via `.env` (pydantic-settings) | ✓ |
-| CORS middleware | ✓ |
-| `GET /health` (with DB connectivity check) | ✓ |
-| `POST /api/v1/pcaps` (validates, hashes, persists) | ✓ stub |
-| `GET /api/v1/pcaps/{id}` | stub (501) |
-| OpenAPI / Swagger UI at `/docs` | ✓ |
+| **Base Detection rules 5-6** (HTTP brute force, beaconing) | 7 |
+| **Production storage** — 30-day cleanup, download endpoint | 6 |
+| **Frontend** (React + Vite + TanStack Query + Tailwind + ECharts) | 7 |
+| CI / GitHub Actions | 8 |
+| Authentication / multi-user | 8 |
 
-## What Does Not Work Yet (Phase 2+)
+---
 
-- Protocol parsing (tshark)
-- Feature extraction
-- Rule engine
-- AI Assessor (Ollama)
-- Frontend
-- WebSocket progress streaming
-- Authentication / multi-user
-- Real PCAP file storage (only metadata persisted in Phase 1)
+## Sprint History
+
+| Sprint | Status | Highlights |
+|---|---|---|
+| 1 | ✓ | Repo scaffold, config, Pydantic contracts, PostgreSQL + async SQLAlchemy |
+| 2 | ✓ | Protocol parsers (tcp/udp/dns/http/ftp/smtp) via tshark JSON streaming |
+| 3 | ✓ | Feature extractor, rule engine, 4 detection rules |
+| 3.5 | ✓ | Validation against CTU-13 + Stratosphere (100% Recall port scan, 100% Precision DNS tunneling) |
+| 4A | ✓ | AI Assessor (Ollama, single-call, template fallback, backward‑compatible) |
+| 5 | ✓ | Celery + Redis async pipeline, job polling API, storage writers, 4‑service Docker Compose |
+| 6 | → | 30‑day cleanup, PCAP download endpoint |
+| 7 | → | Frontend (React + Vite + TanStack Query) |
+| 8 | → | CI, Docker hardening, GitHub release |
 
 ---
 
@@ -66,43 +99,42 @@ API documentation: <http://localhost:8000/docs>
 
 ```
 NetMind-AI/
-├── ARCHITECTURE.md              # System design
-├── DETECTION-PIPELINE.md        # Pipeline + Pydantic contracts
-├── MVP-AND-ROADMAP.md           # Phase plan
+├── ARCHITECTURE.md              # System design docs
+├── DETECTION-PIPELINE.md        # Pipeline + contract reference
+├── MVP-AND-ROADMAP.md           # Roadmap
 ├── RISK-ANALYSIS.md             # Risk register
-├── README.md                    # This file
-├── docker-compose.yaml          # PostgreSQL + API
-├── .env.example                 # Environment template
+├── README.md
+├── docker-compose.yaml          # db + redis + api + worker
+├── .env.example                 # Config template
 ├── .gitignore
 ├── backend/
-│   ├── __init__.py
 │   ├── main.py                  # Uvicorn entrypoint
-│   ├── config.py                # Settings (pydantic-settings)
+│   ├── config.py                # pydantic-settings
 │   ├── pyproject.toml           # Dependencies
-│   ├── Dockerfile
-│   ├── contracts/               # Pydantic models (18 models)
-│   │   ├── __init__.py
-│   │   ├── enums.py
-│   │   ├── parser_output.py
-│   │   ├── features.py
-│   │   ├── findings.py
-│   │   ├── ai_context.py
-│   │   └── ai_output.py
-│   ├── storage/                 # SQLAlchemy ORM
-│   │   ├── __init__.py
+│   ├── Dockerfile               # API container
+│   ├── Dockerfile.worker        # Celery worker container
+│   ├── contracts/               # Pydantic models
+│   ├── storage/                 # SQLAlchemy ORM + writers
+│   │   ├── models.py
 │   │   ├── database.py
-│   │   └── models.py
-│   └── api/                     # FastAPI
-│       ├── __init__.py
-│       ├── app.py
-│       ├── dependencies.py
-│       ├── schemas.py
-│       └── routes/
-│           ├── __init__.py
-│           ├── health.py
-│           └── pcaps.py
-└── db/
-    └── schema.sql               # Reference DDL (init_db uses SQLAlchemy)
+│   │   ├── alert_writer.py
+│   │   └── assessment_writer.py
+│   ├── protocol_parser/         # tshark streaming parser
+│   ├── feature_extractor/       # Flow builder, profiles, baselines
+│   ├── rule_engine/             # 4 detection rules + engine
+│   ├── ai_assessor/             # Ollama provider, assessor
+│   ├── api/                     # FastAPI routes
+│   │   ├── app.py
+│   │   ├── schemas.py
+│   │   └── routes/ (health, pcaps, jobs)
+│   ├── worker/                  # Celery app + tasks
+│   │   ├── __init__.py
+│   │   └── tasks/pcap_analysis.py
+│   ├── validation/              # Performance validation
+│   └── tests/                   # 250+ tests
+├── datasets/                    # Labeled PCAPs (CTU-13, Stratosphere)
+├── db/schema.sql                # Reference DDL
+└── reports/                     # Validation reports (JSON + MD)
 ```
 
 ---
@@ -110,33 +142,35 @@ NetMind-AI/
 ## API Quick Reference
 
 ### `GET /health`
-Liveness + readiness. Returns 200 if the service is up and can reach PostgreSQL.
+Returns 200 if the service is up and can reach PostgreSQL + Redis.
 
 ### `POST /api/v1/pcaps`
 Upload a PCAP/PCAPNG file. Multipart form-data with `file` field.
 - Max size: 100 MB (configurable)
 - Allowed extensions: `.pcap`, `.pcapng`
-- Computes SHA-256, stores metadata, returns 201 with pcap UUID
+- SHA-256 dedup: re-uploading the same file returns 200 with the existing `job_id` and `deduplicated: true`
+- Returns 201 with `job_id` and `pcap_id`; analysis starts asynchronously
 
-Example:
 ```bash
-curl -X POST http://localhost:8000/api/v1/pcaps \
+curl -s -X POST http://localhost:8000/api/v1/pcaps \
   -F "file=@sample.pcapng"
+# → { "job_id": "uuid...", "pcap_id": "uuid...", "status": "queued" }
 ```
 
-Response:
+### `GET /api/v1/jobs/{job_id}`
+Poll the job status. Poll once per second.
 ```json
-{
-  "id": "a1b2c3d4-...",
-  "filename": "abc123.pcapng",
-  "original_name": "sample.pcapng",
-  "file_size": 1048576,
-  "sha256": "abc123...",
-  "status": "uploaded",
-  "uploaded_at": "2026-06-05T12:00:00Z",
-  "note": "Phase 1 stub. Real ingestion pipeline arrives in Phase 2."
-}
+{ "id": "uuid", "status": "parsing", "pcap_id": "uuid", "created_at": "..." }
 ```
+
+### `GET /api/v1/jobs/{job_id}/result`
+Get full analysis result once the job is `completed`.
+- **200** — complete result with alerts + AI assessment
+- **409** — job not yet completed
+- **422** — job failed (includes error message)
+
+### `GET /api/v1/jobs/by_pcap/{pcap_id}`
+List all jobs for a given PCAP.
 
 ---
 
@@ -146,22 +180,31 @@ Run locally without Docker:
 ```bash
 cd backend
 python -m venv .venv
-source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+# Linux: source .venv/bin/activate
+# Windows: .venv\Scripts\activate
 pip install -e .[dev]
+
+# Start API
 DATABASE_URL=postgresql+asyncpg://netmind:netmind@localhost:5432/netmind \
   uvicorn backend.main:app --reload
+
+# Start worker (separate terminal, requires Redis)
+celery -A backend.worker worker --loglevel=INFO --pool=solo
+```
+
+Run tests:
+```bash
+cd backend
+python -m pytest tests/ -v
 ```
 
 ---
 
-## Next Phase
+## Next Sprint
 
-Phase 2 will add:
-- `protocol_parser` module (tshark subprocess wrapper)
-- `feature_extractor` module
-- `rule_engine` with 5 MVP rules
-- Celery + Redis for async analysis
-- Real file storage (Docker volume + content-addressable)
-- LLM integration (Ollama)
+Sprint 6 will add:
+- **30‑day PCAP cleanup** via Celery Beat
+- **PCAP download endpoint** (`GET /api/v1/pcaps/{pcap_id}/download`)
+- Option B: aggregate packet/flow/dns summaries for the "browse traffic" feature
 
 See [MVP-AND-ROADMAP.md](./MVP-AND-ROADMAP.md) for the full plan.

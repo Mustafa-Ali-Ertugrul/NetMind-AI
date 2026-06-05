@@ -1,8 +1,8 @@
 """SMTP Abuse Detection Rule."""
 
-from contracts.enums import Confidence, Severity
-from contracts.features import AggregatedFeatures, SMTPFlow
-from contracts.findings import Finding
+from backend.contracts.enums import Confidence, Severity
+from backend.contracts.features import AggregatedFeatures, SMTPFlow
+from backend.contracts.findings import Finding
 
 from ..base_rule import BaseDetectionRule
 from ..thresholds import (
