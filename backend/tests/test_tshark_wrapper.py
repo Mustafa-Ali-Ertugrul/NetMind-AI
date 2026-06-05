@@ -1,9 +1,7 @@
 """Tests for the TsharkWrapper class."""
 
 import pytest
-import json
-from pathlib import Path
-from unittest.mock import patch, MagicMock, PropertyMock
+from unittest.mock import patch, MagicMock
 
 from backend.protocol_parser.tshark_wrapper import TsharkWrapper, TsharkError, TsharkVersion
 
@@ -27,7 +25,7 @@ class TestTsharkWrapperInit:
     def test_init_defaults(self, mock_which):
         wrapper = TsharkWrapper()
         assert wrapper.tshark_path == "/usr/bin/tshark"
-        assert wrapper.fields == TsharkWrapper.DEFAULT_FIELDS
+        assert wrapper.layers == TsharkWrapper.DEFAULT_LAYERS
         mock_which.assert_called_once_with("tshark")
 
     @patch("shutil.which", return_value="/usr/bin/tshark")
@@ -36,17 +34,19 @@ class TestTsharkWrapperInit:
         assert wrapper.tshark_path == "/custom/tshark"
         mock_which.assert_not_called()
 
+    @patch.dict("os.environ", {}, clear=True)
+    @patch("os.path.isfile", return_value=False)
     @patch("shutil.which", return_value=None)
-    def test_init_tshark_not_found(self, mock_which):
+    def test_init_tshark_not_found(self, mock_which, mock_isfile):
         with pytest.raises(TsharkError, match="tshark not found in PATH"):
             TsharkWrapper()
 
     @patch("shutil.which", return_value="/usr/bin/tshark")
-    def test_init_with_extra_fields(self, mock_which):
-        extra = ["dns.qry.name", "http.host"]
-        wrapper = TsharkWrapper(extra_fields=extra)
-        for field in extra:
-            assert field in wrapper.fields
+    def test_init_with_extra_layers(self, mock_which):
+        extra = ["tls", "ssh"]
+        wrapper = TsharkWrapper(extra_layers=extra)
+        for layer in extra:
+            assert layer in wrapper.layers
 
 
 class TestTsharkWrapperBuildCommand:
@@ -70,12 +70,11 @@ class TestTsharkWrapperBuildCommand:
         assert "dns" in cmd
 
     @patch("shutil.which", return_value="/usr/bin/tshark")
-    def test_command_includes_fields(self, mock_which):
-        wrapper = TsharkWrapper(fields=["frame.number", "ip.src"])
+    def test_command_includes_layers(self, mock_which):
+        wrapper = TsharkWrapper(layers=["frame", "ip"])
         cmd = wrapper._build_command("/tmp/test.pcap")
-        # Each field adds -e and the field name
-        e_positions = [i for i, x in enumerate(cmd) if x == "-e"]
-        assert len(e_positions) == 2
+        assert "-j" in cmd
+        assert "frame ip" in cmd
 
 
 class TestTsharkWrapperStreamPackets:
@@ -125,8 +124,8 @@ class TestTsharkWrapperStreamPackets:
         mock_process.stdout = iter(
             [
                 "[\n",
-                '  {"_source": {"frame": {"frame.number": "1"}}},\n',
-                '  {"_source": {"frame": {"frame.number": "2"}}},\n',
+                '  {"_source": {"layers": {"frame": {"frame.number": "1"}}}},\n',
+                '  {"_source": {"layers": {"frame": {"frame.number": "2"}}}},\n',
                 "]\n",
             ]
         )
@@ -136,6 +135,8 @@ class TestTsharkWrapperStreamPackets:
             packets = list(wrapper.stream_packets(str(pcap_file)))
 
         assert len(packets) == 2
+        assert packets[0]["_source"]["layers"]["frame"]["frame.number"] == "1"
+        assert packets[1]["_source"]["layers"]["frame"]["frame.number"] == "2"
 
     @patch("shutil.which", return_value="/usr/bin/tshark")
     def test_tshark_error_exit(self, mock_which, tmp_path):

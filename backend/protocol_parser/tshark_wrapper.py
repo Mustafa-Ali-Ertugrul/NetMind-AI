@@ -198,27 +198,32 @@ class TsharkWrapper:
             #   }, <--- End of packet
             #   ...
             # ]
-            packet_buffer = []
+            packet_buffer: list[str] = []
             in_packet = False
+            brace_depth = 0
             
             for line in process.stdout:
                 # Tshark uses 2-space indentation for packet objects in the array.
-                if line.startswith("  {"):
+                stripped = line.strip()
+                if not in_packet and stripped.startswith("{"):
                     in_packet = True
-                    packet_buffer = ["{"]
+                    packet_buffer = [stripped.rstrip(",")]
+                    brace_depth = stripped.count("{") - stripped.count("}")
                 elif in_packet:
-                    if line.startswith("  }") or line.startswith("  },"):
-                        packet_buffer.append("}")
-                        packet_str = "".join(packet_buffer)
-                        try:
-                            # Note: tshark -T json output can be HUGE, json.loads is fast
-                            yield json.loads(packet_str)
-                        except json.JSONDecodeError:
-                            pass
-                        in_packet = False
-                        packet_buffer = []
-                    else:
-                        packet_buffer.append(line)
+                    cleaned = stripped.rstrip(",")
+                    packet_buffer.append(cleaned)
+                    brace_depth += cleaned.count("{") - cleaned.count("}")
+
+                if in_packet and brace_depth <= 0:
+                    packet_str = "".join(packet_buffer)
+                    try:
+                        # Note: tshark -T json output can be HUGE, json.loads is fast
+                        yield json.loads(packet_str)
+                    except json.JSONDecodeError:
+                        pass
+                    in_packet = False
+                    packet_buffer = []
+                    brace_depth = 0
 
             # Wait for process to complete
             return_code = process.wait(timeout=30)
