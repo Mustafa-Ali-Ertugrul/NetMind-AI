@@ -1,0 +1,71 @@
+{
+  "generated_at": "2026-06-05T11:56:42.539493+00:00",
+  "rules": {
+    "NET-001": {
+      "rule_id": "NET-001",
+      "rule_name": "Port Scan Detection",
+      "labeled_pcaps": 2,
+      "precision": 0.5,
+      "recall": 1.0,
+      "f1": 0.6667,
+      "fpr": 1.0,
+      "accuracy": 0.5,
+      "tp": 1,
+      "fp": 1,
+      "tn": 0,
+      "fn": 0
+    },
+    "NET-002": {
+      "rule_id": "NET-002",
+      "rule_name": "DNS Tunneling Detection",
+      "labeled_pcaps": 2,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "fpr": 0.0,
+      "accuracy": 1.0,
+      "tp": 1,
+      "fp": 0,
+      "tn": 1,
+      "fn": 0
+    },
+    "NET-003": {
+      "rule_id": "NET-003",
+      "rule_name": "FTP Brute Force Detection",
+      "labeled_pcaps": 2,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "fpr": 0.0,
+      "accuracy": 1.0,
+      "tp": 0,
+      "fp": 0,
+      "tn": 2,
+      "fn": 0
+    },
+    "NET-004": {
+      "rule_id": "NET-004",
+      "rule_name": "SMTP Abuse Detection",
+      "labeled_pcaps": 2,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "fpr": 0.0,
+      "accuracy": 1.0,
+      "tp": 0,
+      "fp": 0,
+      "tn": 2,
+      "fn": 0
+    }
+  },
+  "overall": {
+    "labeled_pcaps": 2,
+    "macro_precision": 0.375,
+    "macro_recall": 0.5,
+    "macro_f1": 0.4167,
+    "total_tp": 2,
+    "total_fp": 1,
+    "total_tn": 5,
+    "total_fn": 0
+  }
+}

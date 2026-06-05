@@ -1,0 +1,30 @@
+# Keep Docker image lean
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Local development
+.env
+.env.local
+.idea/
+.vscode/
+.DS_Store
+*.log
+
+# Tests
+tests/
+
+# Local data
+data/
+uploads/
+*.pcap
+*.pcapng

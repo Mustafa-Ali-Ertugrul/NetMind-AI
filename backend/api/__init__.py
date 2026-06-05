@@ -1,0 +1,1 @@
+"""NetMind AI FastAPI application."""

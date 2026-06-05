@@ -1,0 +1,8 @@
+attack_present: true
+attack_types:
+- malware_rat
+- command_and_control
+notes: "Stratosphere Android Mischief Dataset \u2014 cli_AndroRAT"
+pcap_file: capture-1-android-benchmark.pcap
+source_ips:
+- 147.32.83.245

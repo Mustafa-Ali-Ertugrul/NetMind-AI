@@ -1,0 +1,8 @@
+attack_present: true
+attack_types:
+- botnet_c2
+- port_scan
+notes: "CTU-13 Scenario 1 \u2014 Neris botnet IRC"
+pcap_file: ctu13-scenario-1.pcap
+source_ips:
+- 147.32.84.165

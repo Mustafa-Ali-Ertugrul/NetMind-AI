@@ -1,0 +1,95 @@
+{
+  "pcap_path": "..\\datasets\\stratosphere\\capture-1-android-benchmark.pcap",
+  "pcap_stem": "capture-1-android-benchmark",
+  "generated_at": "2026-06-05T11:56:42.535491+00:00",
+  "pcap_size_bytes": 1214633,
+  "packet_count": 2233,
+  "ground_truth": {
+    "attack_present": true,
+    "attack_types": [
+      "malware_rat",
+      "command_and_control"
+    ],
+    "source_ips": [
+      "147.32.83.245"
+    ],
+    "notes": "Stratosphere Android Mischief Dataset \u2014 cli_AndroRAT"
+  },
+  "findings": [
+    {
+      "id": "46c57579-dc81-45aa-baea-6bc0129a1c6b",
+      "rule_id": "NET-001",
+      "rule_name": "Port Scan Detection",
+      "rule_version": "1.0.0",
+      "severity": "CRITICAL",
+      "confidence": "MEDIUM",
+      "risk_score": 52,
+      "raw_score": 0.5275,
+      "title": "Port scan detected from 104.152.52.23",
+      "description": "Source 104.152.52.23 connected to 71 distinct ports across 1 hosts (4320.0 connections/min, failed ratio 0%, 71.0 ports/host). Pattern: vertical scan (many ports on few targets). This is indicative of reconnaissance or port-scanning activity.",
+      "recommendation": "Investigate host 104.152.52.23 for malicious scanning activity. Consider rate-limiting inbound connections or deploying an IPS/IDS to block automated scanners.",
+      "affected_entities": [
+        "104.152.52.23"
+      ],
+      "evidences": [
+        {
+          "key": "unique_dst_ports",
+          "value": 71,
+          "threshold": "20",
+          "unit": "ports"
+        },
+        {
+          "key": "failed_connection_ratio",
+          "value": 0.0,
+          "threshold": "0.7",
+          "unit": "ratio"
+        },
+        {
+          "key": "connections_per_minute",
+          "value": 4320.0,
+          "threshold": "50.0+",
+          "unit": "cpm"
+        },
+        {
+          "key": "unique_dst_ips",
+          "value": 1,
+          "threshold": "N/A",
+          "unit": "hosts"
+        },
+        {
+          "key": "unique_dst_ports_per_host",
+          "value": 71,
+          "threshold": "N/A",
+          "unit": "ports/host"
+        }
+      ]
+    }
+  ],
+  "overall_risk": {
+    "max_score": 52,
+    "weighted_score": 52,
+    "severity_label": "HIGH",
+    "total_findings": 1,
+    "findings_by_severity": {
+      "CRITICAL": 1
+    },
+    "top_finding_ids": [
+      "46c57579-dc81-45aa-baea-6bc0129a1c6b"
+    ],
+    "failed_rules": []
+  },
+  "performance": {
+    "parse_time_s": 0.9063,
+    "feature_time_s": 0.1124,
+    "rule_time_s": 0.0003,
+    "total_time_s": 1.019,
+    "throughput_pps": 2191.36,
+    "peak_memory_mb": 5.61
+  },
+  "evaluation": {
+    "has_label": true,
+    "rule_ids_fired": [
+      "NET-001"
+    ]
+  }
+}

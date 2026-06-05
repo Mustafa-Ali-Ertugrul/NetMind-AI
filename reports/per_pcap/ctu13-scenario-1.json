@@ -1,0 +1,875 @@
+{
+  "pcap_path": "..\\datasets\\ctu13\\ctu13-scenario-1.pcap",
+  "pcap_stem": "ctu13-scenario-1",
+  "generated_at": "2026-06-05T11:56:41.215872+00:00",
+  "pcap_size_bytes": 58266506,
+  "packet_count": 322244,
+  "ground_truth": {
+    "attack_present": true,
+    "attack_types": [
+      "botnet_c2",
+      "port_scan"
+    ],
+    "source_ips": [
+      "147.32.84.165"
+    ],
+    "notes": "CTU-13 Scenario 1 \u2014 Neris botnet IRC"
+  },
+  "findings": [
+    {
+      "id": "eec39cf1-cee1-4b7d-9276-e08a34f07bfa",
+      "rule_id": "NET-001",
+      "rule_name": "Port Scan Detection",
+      "rule_version": "1.0.0",
+      "severity": "CRITICAL",
+      "confidence": "MEDIUM",
+      "risk_score": 55,
+      "raw_score": 0.55,
+      "title": "Port scan detected from 173.192.170.88",
+      "description": "Source 173.192.170.88 connected to 205 distinct ports across 1 hosts (0.0 connections/min, failed ratio 0%, 205.0 ports/host). Pattern: vertical scan (many ports on few targets). This is indicative of reconnaissance or port-scanning activity.",
+      "recommendation": "Investigate host 173.192.170.88 for malicious scanning activity. Consider rate-limiting inbound connections or deploying an IPS/IDS to block automated scanners.",
+      "affected_entities": [
+        "173.192.170.88"
+      ],
+      "evidences": [
+        {
+          "key": "unique_dst_ports",
+          "value": 205,
+          "threshold": "20",
+          "unit": "ports"
+        },
+        {
+          "key": "failed_connection_ratio",
+          "value": 0.0,
+          "threshold": "0.7",
+          "unit": "ratio"
+        },
+        {
+          "key": "connections_per_minute",
+          "value": 0.0,
+          "threshold": "50.0+",
+          "unit": "cpm"
+        },
+        {
+          "key": "unique_dst_ips",
+          "value": 1,
+          "threshold": "N/A",
+          "unit": "hosts"
+        },
+        {
+          "key": "unique_dst_ports_per_host",
+          "value": 205,
+          "threshold": "N/A",
+          "unit": "ports/host"
+        }
+      ]
+    },
+    {
+      "id": "1a1e3751-d1b1-435e-95aa-3fbd22246e0e",
+      "rule_id": "NET-001",
+      "rule_name": "Port Scan Detection",
+      "rule_version": "1.0.0",
+      "severity": "CRITICAL",
+      "confidence": "MEDIUM",
+      "risk_score": 55,
+      "raw_score": 0.55,
+      "title": "Port scan detected from 174.133.57.141",
+      "description": "Source 174.133.57.141 connected to 337 distinct ports across 1 hosts (0.0 connections/min, failed ratio 0%, 337.0 ports/host). Pattern: vertical scan (many ports on few targets). This is indicative of reconnaissance or port-scanning activity.",
+      "recommendation": "Investigate host 174.133.57.141 for malicious scanning activity. Consider rate-limiting inbound connections or deploying an IPS/IDS to block automated scanners.",
+      "affected_entities": [
+        "174.133.57.141"
+      ],
+      "evidences": [
+        {
+          "key": "unique_dst_ports",
+          "value": 337,
+          "threshold": "20",
+          "unit": "ports"
+        },
+        {
+          "key": "failed_connection_ratio",
+          "value": 0.0,
+          "threshold": "0.7",
+          "unit": "ratio"
+        },
+        {
+          "key": "connections_per_minute",
+          "value": 0.0,
+          "threshold": "50.0+",
+          "unit": "cpm"
+        },
+        {
+          "key": "unique_dst_ips",
+          "value": 1,
+          "threshold": "N/A",
+          "unit": "hosts"
+        },
+        {
+          "key": "unique_dst_ports_per_host",
+          "value": 337,
+          "threshold": "N/A",
+          "unit": "ports/host"
+        }
+      ]
+    },
+    {
+      "id": "3c27960d-b90e-4ed2-bbd4-b3fc815692b9",
+      "rule_id": "NET-001",
+      "rule_name": "Port Scan Detection",
+      "rule_version": "1.0.0",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "risk_score": 11,
+      "raw_score": 0.112,
+      "title": "Port scan detected from 174.36.246.56",
+      "description": "Source 174.36.246.56 connected to 32 distinct ports across 1 hosts (0.0 connections/min, failed ratio 0%, 32.0 ports/host). Pattern: vertical scan (many ports on few targets). This is indicative of reconnaissance or port-scanning activity.",
+      "recommendation": "Investigate host 174.36.246.56 for malicious scanning activity. Consider rate-limiting inbound connections or deploying an IPS/IDS to block automated scanners.",
+      "affected_entities": [
+        "174.36.246.56"
+      ],
+      "evidences": [
+        {
+          "key": "unique_dst_ports",
+          "value": 32,
+          "threshold": "20",
+          "unit": "ports"
+        },
+        {
+          "key": "failed_connection_ratio",
+          "value": 0.0,
+          "threshold": "0.7",
+          "unit": "ratio"
+        },
+        {
+          "key": "connections_per_minute",
+          "value": 0.0,
+          "threshold": "50.0+",
+          "unit": "cpm"
+        },
+        {
+          "key": "unique_dst_ips",
+          "value": 1,
+          "threshold": "N/A",
+          "unit": "hosts"
+        },
+        {
+          "key": "unique_dst_ports_per_host",
+          "value": 32,
+          "threshold": "N/A",
+          "unit": "ports/host"
+        }
+      ]
+    },
+    {
+      "id": "5653ccc3-f88c-417b-a906-fa54a5174e68",
+      "rule_id": "NET-001",
+      "rule_name": "Port Scan Detection",
+      "rule_version": "1.0.0",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "risk_score": 9,
+      "raw_score": 0.098,
+      "title": "Port scan detected from 195.113.232.82",
+      "description": "Source 195.113.232.82 connected to 28 distinct ports across 1 hosts (0.0 connections/min, failed ratio 0%, 28.0 ports/host). Pattern: vertical scan (many ports on few targets). This is indicative of reconnaissance or port-scanning activity.",
+      "recommendation": "Investigate host 195.113.232.82 for malicious scanning activity. Consider rate-limiting inbound connections or deploying an IPS/IDS to block automated scanners.",
+      "affected_entities": [
+        "195.113.232.82"
+      ],
+      "evidences": [
+        {
+          "key": "unique_dst_ports",
+          "value": 28,
+          "threshold": "20",
+          "unit": "ports"
+        },
+        {
+          "key": "failed_connection_ratio",
+          "value": 0.0,
+          "threshold": "0.7",
+          "unit": "ratio"
+        },
+        {
+          "key": "connections_per_minute",
+          "value": 0.0,
+          "threshold": "50.0+",
+          "unit": "cpm"
+        },
+        {
+          "key": "unique_dst_ips",
+          "value": 1,
+          "threshold": "N/A",
+          "unit": "hosts"
+        },
+        {
+          "key": "unique_dst_ports_per_host",
+          "value": 28,
+          "threshold": "N/A",
+          "unit": "ports/host"
+        }
+      ]
+    },
+    {
+      "id": "ea4e34c8-5247-407b-9091-3c8bba26ba66",
+      "rule_id": "NET-001",
+      "rule_name": "Port Scan Detection",
+      "rule_version": "1.0.0",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "risk_score": 7,
+      "raw_score": 0.0735,
+      "title": "Port scan detected from 195.113.232.83",
+      "description": "Source 195.113.232.83 connected to 21 distinct ports across 1 hosts (0.0 connections/min, failed ratio 0%, 21.0 ports/host). Pattern: vertical scan (many ports on few targets). This is indicative of reconnaissance or port-scanning activity.",
+      "recommendation": "Investigate host 195.113.232.83 for malicious scanning activity. Consider rate-limiting inbound connections or deploying an IPS/IDS to block automated scanners.",
+      "affected_entities": [
+        "195.113.232.83"
+      ],
+      "evidences": [
+        {
+          "key": "unique_dst_ports",
+          "value": 21,
+          "threshold": "20",
+          "unit": "ports"
+        },
+        {
+          "key": "failed_connection_ratio",
+          "value": 0.0,
+          "threshold": "0.7",
+          "unit": "ratio"
+        },
+        {
+          "key": "connections_per_minute",
+          "value": 0.0,
+          "threshold": "50.0+",
+          "unit": "cpm"
+        },
+        {
+          "key": "unique_dst_ips",
+          "value": 1,
+          "threshold": "N/A",
+          "unit": "hosts"
+        },
+        {
+          "key": "unique_dst_ports_per_host",
+          "value": 21,
+          "threshold": "N/A",
+          "unit": "ports/host"
+        }
+      ]
+    },
+    {
+      "id": "e0ae3061-e242-4c2a-999d-8962310caaf9",
+      "rule_id": "NET-001",
+      "rule_name": "Port Scan Detection",
+      "rule_version": "1.0.0",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "risk_score": 9,
+      "raw_score": 0.091,
+      "title": "Port scan detected from 195.113.232.88",
+      "description": "Source 195.113.232.88 connected to 26 distinct ports across 1 hosts (0.0 connections/min, failed ratio 0%, 26.0 ports/host). Pattern: vertical scan (many ports on few targets). This is indicative of reconnaissance or port-scanning activity.",
+      "recommendation": "Investigate host 195.113.232.88 for malicious scanning activity. Consider rate-limiting inbound connections or deploying an IPS/IDS to block automated scanners.",
+      "affected_entities": [
+        "195.113.232.88"
+      ],
+      "evidences": [
+        {
+          "key": "unique_dst_ports",
+          "value": 26,
+          "threshold": "20",
+          "unit": "ports"
+        },
+        {
+          "key": "failed_connection_ratio",
+          "value": 0.0,
+          "threshold": "0.7",
+          "unit": "ratio"
+        },
+        {
+          "key": "connections_per_minute",
+          "value": 0.0,
+          "threshold": "50.0+",
+          "unit": "cpm"
+        },
+        {
+          "key": "unique_dst_ips",
+          "value": 1,
+          "threshold": "N/A",
+          "unit": "hosts"
+        },
+        {
+          "key": "unique_dst_ports_per_host",
+          "value": 26,
+          "threshold": "N/A",
+          "unit": "ports/host"
+        }
+      ]
+    },
+    {
+      "id": "becceec2-2740-4964-a574-b1b28589449a",
+      "rule_id": "NET-001",
+      "rule_name": "Port Scan Detection",
+      "rule_version": "1.0.0",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "risk_score": 10,
+      "raw_score": 0.1015,
+      "title": "Port scan detected from 208.73.210.29",
+      "description": "Source 208.73.210.29 connected to 29 distinct ports across 1 hosts (0.0 connections/min, failed ratio 0%, 29.0 ports/host). Pattern: vertical scan (many ports on few targets). This is indicative of reconnaissance or port-scanning activity.",
+      "recommendation": "Investigate host 208.73.210.29 for malicious scanning activity. Consider rate-limiting inbound connections or deploying an IPS/IDS to block automated scanners.",
+      "affected_entities": [
+        "208.73.210.29"
+      ],
+      "evidences": [
+        {
+          "key": "unique_dst_ports",
+          "value": 29,
+          "threshold": "20",
+          "unit": "ports"
+        },
+        {
+          "key": "failed_connection_ratio",
+          "value": 0.0,
+          "threshold": "0.7",
+          "unit": "ratio"
+        },
+        {
+          "key": "connections_per_minute",
+          "value": 0.0,
+          "threshold": "50.0+",
+          "unit": "cpm"
+        },
+        {
+          "key": "unique_dst_ips",
+          "value": 1,
+          "threshold": "N/A",
+          "unit": "hosts"
+        },
+        {
+          "key": "unique_dst_ports_per_host",
+          "value": 29,
+          "threshold": "N/A",
+          "unit": "ports/host"
+        }
+      ]
+    },
+    {
+      "id": "6246d1b0-6878-4698-bbe1-4292ecf5f811",
+      "rule_id": "NET-001",
+      "rule_name": "Port Scan Detection",
+      "rule_version": "1.0.0",
+      "severity": "CRITICAL",
+      "confidence": "MEDIUM",
+      "risk_score": 55,
+      "raw_score": 0.55,
+      "title": "Port scan detected from 212.117.171.138",
+      "description": "Source 212.117.171.138 connected to 253 distinct ports across 1 hosts (0.0 connections/min, failed ratio 0%, 253.0 ports/host). Pattern: vertical scan (many ports on few targets). This is indicative of reconnaissance or port-scanning activity.",
+      "recommendation": "Investigate host 212.117.171.138 for malicious scanning activity. Consider rate-limiting inbound connections or deploying an IPS/IDS to block automated scanners.",
+      "affected_entities": [
+        "212.117.171.138"
+      ],
+      "evidences": [
+        {
+          "key": "unique_dst_ports",
+          "value": 253,
+          "threshold": "20",
+          "unit": "ports"
+        },
+        {
+          "key": "failed_connection_ratio",
+          "value": 0.0,
+          "threshold": "0.7",
+          "unit": "ratio"
+        },
+        {
+          "key": "connections_per_minute",
+          "value": 0.0,
+          "threshold": "50.0+",
+          "unit": "cpm"
+        },
+        {
+          "key": "unique_dst_ips",
+          "value": 1,
+          "threshold": "N/A",
+          "unit": "hosts"
+        },
+        {
+          "key": "unique_dst_ports_per_host",
+          "value": 253,
+          "threshold": "N/A",
+          "unit": "ports/host"
+        }
+      ]
+    },
+    {
+      "id": "97bf8e0d-505f-4b21-b1e5-6dda9369a7ee",
+      "rule_id": "NET-001",
+      "rule_name": "Port Scan Detection",
+      "rule_version": "1.0.0",
+      "severity": "HIGH",
+      "confidence": "MEDIUM",
+      "risk_score": 18,
+      "raw_score": 0.1825,
+      "title": "Port scan detected from 31.192.109.167",
+      "description": "Source 31.192.109.167 connected to 53 distinct ports across 1 hosts (0.0 connections/min, failed ratio 0%, 53.0 ports/host). Pattern: vertical scan (many ports on few targets). This is indicative of reconnaissance or port-scanning activity.",
+      "recommendation": "Investigate host 31.192.109.167 for malicious scanning activity. Consider rate-limiting inbound connections or deploying an IPS/IDS to block automated scanners.",
+      "affected_entities": [
+        "31.192.109.167"
+      ],
+      "evidences": [
+        {
+          "key": "unique_dst_ports",
+          "value": 53,
+          "threshold": "20",
+          "unit": "ports"
+        },
+        {
+          "key": "failed_connection_ratio",
+          "value": 0.0,
+          "threshold": "0.7",
+          "unit": "ratio"
+        },
+        {
+          "key": "connections_per_minute",
+          "value": 0.0,
+          "threshold": "50.0+",
+          "unit": "cpm"
+        },
+        {
+          "key": "unique_dst_ips",
+          "value": 1,
+          "threshold": "N/A",
+          "unit": "hosts"
+        },
+        {
+          "key": "unique_dst_ports_per_host",
+          "value": 53,
+          "threshold": "N/A",
+          "unit": "ports/host"
+        }
+      ]
+    },
+    {
+      "id": "45c58b14-7cf5-4c2b-a40e-a42b1274199e",
+      "rule_id": "NET-001",
+      "rule_name": "Port Scan Detection",
+      "rule_version": "1.0.0",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "risk_score": 10,
+      "raw_score": 0.1085,
+      "title": "Port scan detected from 50.22.198.84",
+      "description": "Source 50.22.198.84 connected to 31 distinct ports across 1 hosts (0.0 connections/min, failed ratio 0%, 31.0 ports/host). Pattern: vertical scan (many ports on few targets). This is indicative of reconnaissance or port-scanning activity.",
+      "recommendation": "Investigate host 50.22.198.84 for malicious scanning activity. Consider rate-limiting inbound connections or deploying an IPS/IDS to block automated scanners.",
+      "affected_entities": [
+        "50.22.198.84"
+      ],
+      "evidences": [
+        {
+          "key": "unique_dst_ports",
+          "value": 31,
+          "threshold": "20",
+          "unit": "ports"
+        },
+        {
+          "key": "failed_connection_ratio",
+          "value": 0.0,
+          "threshold": "0.7",
+          "unit": "ratio"
+        },
+        {
+          "key": "connections_per_minute",
+          "value": 0.0,
+          "threshold": "50.0+",
+          "unit": "cpm"
+        },
+        {
+          "key": "unique_dst_ips",
+          "value": 1,
+          "threshold": "N/A",
+          "unit": "hosts"
+        },
+        {
+          "key": "unique_dst_ports_per_host",
+          "value": 31,
+          "threshold": "N/A",
+          "unit": "ports/host"
+        }
+      ]
+    },
+    {
+      "id": "fa32c418-d4a1-4d11-ab15-3d8a59a30c12",
+      "rule_id": "NET-001",
+      "rule_name": "Port Scan Detection",
+      "rule_version": "1.0.0",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "risk_score": 7,
+      "raw_score": 0.0735,
+      "title": "Port scan detected from 64.236.79.229",
+      "description": "Source 64.236.79.229 connected to 21 distinct ports across 1 hosts (0.0 connections/min, failed ratio 0%, 21.0 ports/host). Pattern: vertical scan (many ports on few targets). This is indicative of reconnaissance or port-scanning activity.",
+      "recommendation": "Investigate host 64.236.79.229 for malicious scanning activity. Consider rate-limiting inbound connections or deploying an IPS/IDS to block automated scanners.",
+      "affected_entities": [
+        "64.236.79.229"
+      ],
+      "evidences": [
+        {
+          "key": "unique_dst_ports",
+          "value": 21,
+          "threshold": "20",
+          "unit": "ports"
+        },
+        {
+          "key": "failed_connection_ratio",
+          "value": 0.0,
+          "threshold": "0.7",
+          "unit": "ratio"
+        },
+        {
+          "key": "connections_per_minute",
+          "value": 0.0,
+          "threshold": "50.0+",
+          "unit": "cpm"
+        },
+        {
+          "key": "unique_dst_ips",
+          "value": 1,
+          "threshold": "N/A",
+          "unit": "hosts"
+        },
+        {
+          "key": "unique_dst_ports_per_host",
+          "value": 21,
+          "threshold": "N/A",
+          "unit": "ports/host"
+        }
+      ]
+    },
+    {
+      "id": "0d0e838f-f3d0-4a07-8c24-5d1b0c9d0079",
+      "rule_id": "NET-001",
+      "rule_name": "Port Scan Detection",
+      "rule_version": "1.0.0",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "risk_score": 9,
+      "raw_score": 0.091,
+      "title": "Port scan detected from 65.55.196.251",
+      "description": "Source 65.55.196.251 connected to 26 distinct ports across 1 hosts (0.0 connections/min, failed ratio 0%, 26.0 ports/host). Pattern: vertical scan (many ports on few targets). This is indicative of reconnaissance or port-scanning activity.",
+      "recommendation": "Investigate host 65.55.196.251 for malicious scanning activity. Consider rate-limiting inbound connections or deploying an IPS/IDS to block automated scanners.",
+      "affected_entities": [
+        "65.55.196.251"
+      ],
+      "evidences": [
+        {
+          "key": "unique_dst_ports",
+          "value": 26,
+          "threshold": "20",
+          "unit": "ports"
+        },
+        {
+          "key": "failed_connection_ratio",
+          "value": 0.0,
+          "threshold": "0.7",
+          "unit": "ratio"
+        },
+        {
+          "key": "connections_per_minute",
+          "value": 0.0,
+          "threshold": "50.0+",
+          "unit": "cpm"
+        },
+        {
+          "key": "unique_dst_ips",
+          "value": 1,
+          "threshold": "N/A",
+          "unit": "hosts"
+        },
+        {
+          "key": "unique_dst_ports_per_host",
+          "value": 26,
+          "threshold": "N/A",
+          "unit": "ports/host"
+        }
+      ]
+    },
+    {
+      "id": "b1736c66-9a10-490b-bebb-012ae39ea092",
+      "rule_id": "NET-001",
+      "rule_name": "Port Scan Detection",
+      "rule_version": "1.0.0",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "risk_score": 11,
+      "raw_score": 0.112,
+      "title": "Port scan detected from 67.214.158.5",
+      "description": "Source 67.214.158.5 connected to 32 distinct ports across 1 hosts (0.0 connections/min, failed ratio 0%, 32.0 ports/host). Pattern: vertical scan (many ports on few targets). This is indicative of reconnaissance or port-scanning activity.",
+      "recommendation": "Investigate host 67.214.158.5 for malicious scanning activity. Consider rate-limiting inbound connections or deploying an IPS/IDS to block automated scanners.",
+      "affected_entities": [
+        "67.214.158.5"
+      ],
+      "evidences": [
+        {
+          "key": "unique_dst_ports",
+          "value": 32,
+          "threshold": "20",
+          "unit": "ports"
+        },
+        {
+          "key": "failed_connection_ratio",
+          "value": 0.0,
+          "threshold": "0.7",
+          "unit": "ratio"
+        },
+        {
+          "key": "connections_per_minute",
+          "value": 0.0,
+          "threshold": "50.0+",
+          "unit": "cpm"
+        },
+        {
+          "key": "unique_dst_ips",
+          "value": 1,
+          "threshold": "N/A",
+          "unit": "hosts"
+        },
+        {
+          "key": "unique_dst_ports_per_host",
+          "value": 32,
+          "threshold": "N/A",
+          "unit": "ports/host"
+        }
+      ]
+    },
+    {
+      "id": "7c552074-c20a-4eec-813f-e83e9875399d",
+      "rule_id": "NET-001",
+      "rule_name": "Port Scan Detection",
+      "rule_version": "1.0.0",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "risk_score": 7,
+      "raw_score": 0.077,
+      "title": "Port scan detected from 74.125.232.217",
+      "description": "Source 74.125.232.217 connected to 22 distinct ports across 1 hosts (0.0 connections/min, failed ratio 0%, 22.0 ports/host). Pattern: vertical scan (many ports on few targets). This is indicative of reconnaissance or port-scanning activity.",
+      "recommendation": "Investigate host 74.125.232.217 for malicious scanning activity. Consider rate-limiting inbound connections or deploying an IPS/IDS to block automated scanners.",
+      "affected_entities": [
+        "74.125.232.217"
+      ],
+      "evidences": [
+        {
+          "key": "unique_dst_ports",
+          "value": 22,
+          "threshold": "20",
+          "unit": "ports"
+        },
+        {
+          "key": "failed_connection_ratio",
+          "value": 0.0,
+          "threshold": "0.7",
+          "unit": "ratio"
+        },
+        {
+          "key": "connections_per_minute",
+          "value": 0.0,
+          "threshold": "50.0+",
+          "unit": "cpm"
+        },
+        {
+          "key": "unique_dst_ips",
+          "value": 1,
+          "threshold": "N/A",
+          "unit": "hosts"
+        },
+        {
+          "key": "unique_dst_ports_per_host",
+          "value": 22,
+          "threshold": "N/A",
+          "unit": "ports/host"
+        }
+      ]
+    },
+    {
+      "id": "471b2fb5-a8d5-4275-b3ce-0619012bffe8",
+      "rule_id": "NET-001",
+      "rule_name": "Port Scan Detection",
+      "rule_version": "1.0.0",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "risk_score": 7,
+      "raw_score": 0.0735,
+      "title": "Port scan detected from 74.222.3.26",
+      "description": "Source 74.222.3.26 connected to 21 distinct ports across 1 hosts (0.0 connections/min, failed ratio 0%, 21.0 ports/host). Pattern: vertical scan (many ports on few targets). This is indicative of reconnaissance or port-scanning activity.",
+      "recommendation": "Investigate host 74.222.3.26 for malicious scanning activity. Consider rate-limiting inbound connections or deploying an IPS/IDS to block automated scanners.",
+      "affected_entities": [
+        "74.222.3.26"
+      ],
+      "evidences": [
+        {
+          "key": "unique_dst_ports",
+          "value": 21,
+          "threshold": "20",
+          "unit": "ports"
+        },
+        {
+          "key": "failed_connection_ratio",
+          "value": 0.0,
+          "threshold": "0.7",
+          "unit": "ratio"
+        },
+        {
+          "key": "connections_per_minute",
+          "value": 0.0,
+          "threshold": "50.0+",
+          "unit": "cpm"
+        },
+        {
+          "key": "unique_dst_ips",
+          "value": 1,
+          "threshold": "N/A",
+          "unit": "hosts"
+        },
+        {
+          "key": "unique_dst_ports_per_host",
+          "value": 21,
+          "threshold": "N/A",
+          "unit": "ports/host"
+        }
+      ]
+    },
+    {
+      "id": "6ac85e28-41b3-4438-86c0-74363eeb0405",
+      "rule_id": "NET-001",
+      "rule_name": "Port Scan Detection",
+      "rule_version": "1.0.0",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "risk_score": 12,
+      "raw_score": 0.1295,
+      "title": "Port scan detected from 98.126.71.122",
+      "description": "Source 98.126.71.122 connected to 37 distinct ports across 1 hosts (0.0 connections/min, failed ratio 0%, 37.0 ports/host). Pattern: vertical scan (many ports on few targets). This is indicative of reconnaissance or port-scanning activity.",
+      "recommendation": "Investigate host 98.126.71.122 for malicious scanning activity. Consider rate-limiting inbound connections or deploying an IPS/IDS to block automated scanners.",
+      "affected_entities": [
+        "98.126.71.122"
+      ],
+      "evidences": [
+        {
+          "key": "unique_dst_ports",
+          "value": 37,
+          "threshold": "20",
+          "unit": "ports"
+        },
+        {
+          "key": "failed_connection_ratio",
+          "value": 0.0,
+          "threshold": "0.7",
+          "unit": "ratio"
+        },
+        {
+          "key": "connections_per_minute",
+          "value": 0.0,
+          "threshold": "50.0+",
+          "unit": "cpm"
+        },
+        {
+          "key": "unique_dst_ips",
+          "value": 1,
+          "threshold": "N/A",
+          "unit": "hosts"
+        },
+        {
+          "key": "unique_dst_ports_per_host",
+          "value": 37,
+          "threshold": "N/A",
+          "unit": "ports/host"
+        }
+      ]
+    },
+    {
+      "id": "d2ab239d-a3b6-4c1d-98c7-6c69e94e28c2",
+      "rule_id": "NET-002",
+      "rule_name": "DNS Tunneling Detection",
+      "rule_version": "1.0.0",
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "risk_score": 32,
+      "raw_score": 0.321,
+      "title": "Potential DNS tunneling detected: ",
+      "description": "Domain  exhibits 2/5 DNS-tunneling indicators: base64_ratio=0.00%, subdomains=1, entropy=0.00, query_rate=5074440.0/min. This pattern is consistent with data exfiltration or C2 communication over DNS.",
+      "recommendation": "Review DNS queries to  originating from 147.32.84.165. Consider blocking or sinkholing the domain if confirmed malicious. Inspect subdomain payloads for encoded data.",
+      "affected_entities": [
+        "",
+        "147.32.84.165",
+        "109.104.70.194",
+        "109.123.152.2",
+        "109.123.174.207",
+        "109.126.10.50",
+        "109.167.200.100",
+        "109.197.253.241",
+        "109.206.161.3",
+        "109.206.161.90",
+        "109.206.162.162",
+        "109.234.156.34"
+      ],
+      "evidences": [
+        {
+          "key": "base64_ratio",
+          "value": 0.0,
+          "threshold": "0.3+",
+          "unit": "ratio"
+        },
+        {
+          "key": "unique_subdomain_count",
+          "value": 1,
+          "threshold": "20+",
+          "unit": "subdomains"
+        },
+        {
+          "key": "subdomain_entropy",
+          "value": 0.0,
+          "threshold": "4.0+",
+          "unit": "bits"
+        },
+        {
+          "key": "query_frequency_per_domain",
+          "value": 5074440.0,
+          "threshold": "60.0+",
+          "unit": "qpm"
+        }
+      ]
+    }
+  ],
+  "overall_risk": {
+    "max_score": 55,
+    "weighted_score": 22,
+    "severity_label": "LOW",
+    "total_findings": 17,
+    "findings_by_severity": {
+      "CRITICAL": 3,
+      "MEDIUM": 13,
+      "HIGH": 1
+    },
+    "top_finding_ids": [
+      "eec39cf1-cee1-4b7d-9276-e08a34f07bfa",
+      "1a1e3751-d1b1-435e-95aa-3fbd22246e0e",
+      "6246d1b0-6878-4698-bbe1-4292ecf5f811",
+      "d2ab239d-a3b6-4c1d-98c7-6c69e94e28c2",
+      "97bf8e0d-505f-4b21-b1e5-6dda9369a7ee"
+    ],
+    "failed_rules": []
+  },
+  "performance": {
+    "parse_time_s": 132.1942,
+    "feature_time_s": 19.0847,
+    "rule_time_s": 0.0056,
+    "total_time_s": 151.2845,
+    "throughput_pps": 2130.05,
+    "peak_memory_mb": 661.5
+  },
+  "evaluation": {
+    "has_label": true,
+    "rule_ids_fired": [
+      "NET-001",
+      "NET-002"
+    ]
+  }
+}
