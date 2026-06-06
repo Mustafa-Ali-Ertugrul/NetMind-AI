@@ -13,9 +13,10 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from backend.api.metrics import MetricsMiddleware, metrics_endpoint
 from backend.api.rate_limit import limiter
-from backend.api.routes import health, jobs, pcaps, storage
+from backend.api.routes import health, jobs, live, pcaps, storage
 from backend.config import get_settings
-from backend.storage.database import init_db
+from backend.storage.database import SyncSessionLocal, init_db
+from backend.live_engine.service import LiveEngineService
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,24 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     except Exception as exc:
         logger.error("Database initialization failed: %s", exc)
         raise
+
+    # ── Live engine service ─────────────────────────────────
+    live_service = LiveEngineService()
+    try:
+        live_service.bind_writers(SyncSessionLocal)
+        await live_service.start()
+        logger.info("Live engine service started")
+    except Exception as exc:
+        logger.warning("Live engine service failed to start: %s", exc)
+        live_service = None
+    app.state.live_service = live_service
+
     yield
+
+    # ── Shutdown ────────────────────────────────────────────
+    if live_service is not None:
+        await live_service.stop()
+        logger.info("Live engine service stopped")
     logger.info("Shutting down %s", settings.app_name)
 
 
@@ -76,6 +94,7 @@ def create_app() -> FastAPI:
     app.include_router(pcaps.router, prefix=settings.api_prefix)
     app.include_router(jobs.router, prefix=settings.api_prefix)
     app.include_router(storage.router, prefix=settings.api_prefix)
+    app.include_router(live.router, prefix=settings.api_prefix)
 
     # Prometheus /metrics endpoint (registered after routers)
     @app.get("/metrics", include_in_schema=False)

@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from sqlalchemy import text
 
 from backend.config import get_settings
@@ -28,6 +28,12 @@ AsyncSessionLocal = async_sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False,
     autoflush=False,
+)
+
+# Sync session factory for writer services that use sync Session
+SyncSessionLocal = sessionmaker(
+    bind=engine.sync_engine,
+    expire_on_commit=False,
 )
 
 

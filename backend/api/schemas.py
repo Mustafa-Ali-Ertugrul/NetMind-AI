@@ -120,3 +120,111 @@ class AnalysisResultResponse(BaseModel):
     alerts: list[AlertResponse]
     ai_assessment: dict[str, Any] | None = None
     overall_risk: OverallRiskResponse | None = None
+
+
+# ── Live engine API schemas (Adım 7) ─────────────────────────────────────
+
+
+class IngestEventRequest(BaseModel):
+    """Single network event from external collector (mirrors RawEvent)."""
+
+    ts: datetime | None = None
+    src_ip: str
+    dst_ip: str
+    src_port: int = Field(..., ge=0, le=65535)
+    dst_port: int = Field(..., ge=0, le=65535)
+    protocol: str
+    bytes: int = Field(default=0, alias="bytes")
+    packets: int = Field(default=1, ge=1)
+    flags: str | None = None
+    http_method: str | None = None
+    http_uri: str | None = None
+    http_host: str | None = None
+    http_status: int | None = Field(default=None, ge=100, le=599)
+    http_user_agent: str | None = None
+    dns_qname: str | None = None
+    dns_qtype: str | None = None
+    session_id: str | None = None
+    collector_id: str | None = None
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+
+class IngestEventResponse(BaseModel):
+    """Response for a successfully queued event."""
+
+    queued: bool = True
+    session_id: UUID
+    events_queued: int
+    stream_qsize: int
+
+
+class LiveAlertResponse(BaseModel):
+    """Live alert row — matches ``LiveAlert`` ORM model."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    session_id: UUID
+    rule_id: str
+    severity: str
+    confidence: str
+    risk_score: int
+    title: str
+    description: str | None = None
+    recommendation: str | None = None
+    affected_entities: list[str] = Field(default_factory=list)
+    evidence: dict = Field(default_factory=dict)
+    feature_snapshot: dict = Field(default_factory=dict)
+    timestamp_start: datetime
+    timestamp_end: datetime
+    triggered_at: datetime
+    status: str
+
+
+class LiveAlertListResponse(BaseModel):
+    """Paginated list of live alerts."""
+
+    items: list[LiveAlertResponse]
+    total: int
+    limit: int
+    offset: int
+
+
+class TimelineBucketResponse(BaseModel):
+    """A single timeline bucket — rule + time window + count."""
+
+    rule_id: str
+    bucket_start: datetime
+    count: int
+    max_severity: str
+
+
+class RuleStatsResponse(BaseModel):
+    """Per-rule statistics (computed + persisted)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    rule_id: str
+    session_id: UUID | None = None
+    evaluations: int
+    hits: int
+    miss: int
+    avg_risk_score: float
+    max_risk_score: float
+    rolling_window_size: int
+    last_evaluation_at: datetime
+    hit_ratio: float = 0.0
+
+
+class LiveMetricsResponse(BaseModel):
+    """Snapshot of live engine health counters."""
+
+    queue_size: int = 0
+    events_enqueued: int = 0
+    events_dropped: int = 0
+    events_processed: int = 0
+    batches_processed: int = 0
+    alerts_generated: int = 0
+    active_sessions: int = 0
+    uptime_seconds: float = 0.0

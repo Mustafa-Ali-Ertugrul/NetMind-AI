@@ -307,6 +307,7 @@ class StreamingRuleEngine:
         self._feature_builder = _StreamingFeatureBuilder(self._session_id)
         self._alert_writer = alert_writer
         self._stats_writer = stats_writer
+        self._alerts_generated = 0
 
     @property
     def session_id(self) -> UUID:
@@ -315,6 +316,10 @@ class StreamingRuleEngine:
     @property
     def rule_engine(self) -> RuleEngine:
         return self._rule_engine
+
+    @property
+    def alerts_generated(self) -> int:
+        return self._alerts_generated
 
     def process_event(self, event: FlowEvent) -> None:
         """Feed a single event into the engine (non-blocking)."""
@@ -328,6 +333,7 @@ class StreamingRuleEngine:
         """
         features = self._feature_builder.finalize()
         findings, overall = self._rule_engine.analyze(features)
+        self._alerts_generated += len(findings)
 
         # ── Alert writer hook (optional) ────────────────────────────
         if self._alert_writer is not None:
