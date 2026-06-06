@@ -217,4 +217,4 @@ class TestRuleEngine:
         """RuleEngine exposes its registry."""
         engine = RuleEngine()
         assert engine.registry is not None
-        assert len(engine.registry) == 4
+        assert len(engine.registry) == 9

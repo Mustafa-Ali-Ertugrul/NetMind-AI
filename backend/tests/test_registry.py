@@ -56,6 +56,16 @@ class TestRuleRegistry:
 
     def test_default_engine_registry(self):
         engine = RuleEngine()
-        assert len(engine.registry) == 4
+        assert len(engine.registry) == 9
         ids = {r.rule_id for r in engine.registry.get_all()}
-        assert ids == {"NET-001", "NET-002", "NET-003", "NET-004"}
+        assert ids == {
+            "NET-001",
+            "NET-002",
+            "NET-003",
+            "NET-004",
+            "NET-005",
+            "NET-006",
+            "NET-007",
+            "NET-008",
+            "NET-009",
+        }

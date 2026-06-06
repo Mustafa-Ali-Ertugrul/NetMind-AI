@@ -1,0 +1,1 @@
+"""Streaming Rule Engine package."""

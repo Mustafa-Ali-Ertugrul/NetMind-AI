@@ -47,7 +47,7 @@ class ParsedHTTP(BaseModel):
     src_ip: IPv4Address | IPv6Address
     dst_ip: IPv4Address | IPv6Address
     method: str
-    host: str
+    host: str | None = None
     uri: str
     status_code: int | None = None
     user_agent: str | None = None
