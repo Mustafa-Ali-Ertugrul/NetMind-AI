@@ -1,8 +1,9 @@
 import { NavLink } from 'react-router-dom';
-import { Upload, HardDrive, LayoutDashboard } from 'lucide-react';
+import { Upload, HardDrive, LayoutDashboard, Radio } from 'lucide-react';
 
 const links = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/live', label: 'Live Monitor', icon: Radio },
   { to: '/upload', label: 'Upload PCAP', icon: Upload },
   { to: '/storage', label: 'Storage', icon: HardDrive },
 ];

@@ -11,6 +11,7 @@ import { SkeletonCard, SkeletonTable, SkeletonChart } from '@/components/ui/Skel
 const DashboardPage = lazy(() => import('@/pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
 const StorageStatusPage = lazy(() => import('@/pages/StorageStatusPage').then(m => ({ default: m.StorageStatusPage })));
 const JobDetailPage = lazy(() => import('@/pages/JobDetailPage').then(m => ({ default: m.JobDetailPage })));
+const LiveMonitorPage = lazy(() => import('@/pages/LiveMonitorPage').then(m => ({ default: m.LiveMonitorPage })));
 
 function DashboardFallback() {
   return (
@@ -69,6 +70,30 @@ function JobDetailFallback() {
   );
 }
 
+function LiveMonitorFallback() {
+  return (
+    <div className="max-w-5xl mx-auto space-y-6 animate-pulse">
+      <div className="h-6 w-32 bg-gray-200 rounded" />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+          <div className="h-4 w-24 bg-gray-200 rounded" />
+          <SkeletonTable rows={3} />
+        </div>
+        <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+          <div className="h-4 w-20 bg-gray-200 rounded" />
+          <SkeletonChart />
+        </div>
+      </div>
+      <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+        <div className="h-4 w-28 bg-gray-200 rounded" />
+        <SkeletonTable rows={4} />
+      </div>
+    </div>
+  );
+}
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -108,6 +133,14 @@ function App() {
                 element={
                   <Suspense fallback={<StorageFallback />}>
                     <StorageStatusPage />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="live"
+                element={
+                  <Suspense fallback={<LiveMonitorFallback />}>
+                    <LiveMonitorPage />
                   </Suspense>
                 }
               />
