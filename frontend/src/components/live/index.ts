@@ -5,3 +5,5 @@ export { ServiceMetrics } from './ServiceMetrics';
 export { RiskSummaryCard } from './RiskSummaryCard';
 export { LiveTopTalkers } from './LiveTopTalkers';
 export { RiskTrendChart } from './RiskTrendChart';
+export { WindowSelector } from './WindowSelector';
+export { DemoControlPanel } from './DemoControlPanel';

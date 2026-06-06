@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLiveAlerts, useAlertTimeline, useRuleStats, useLiveMetrics, useLiveTalkers, useLiveRiskStream } from '@/hooks/useLive';
-import { ActiveAlerts, AlertTimeline, RuleStatistics, ServiceMetrics, RiskSummaryCard, LiveTopTalkers, RiskTrendChart, WindowSelector } from '@/components/live';
+import { ActiveAlerts, AlertTimeline, RuleStatistics, ServiceMetrics, RiskSummaryCard, LiveTopTalkers, RiskTrendChart, WindowSelector, DemoControlPanel } from '@/components/live';
 import { Radio } from 'lucide-react';
 
 export function LiveMonitorPage() {
@@ -23,7 +23,10 @@ export function LiveMonitorPage() {
           </div>
           <p className="text-sm text-gray-500">Real-time streaming alerts, timeline, and engine health</p>
         </div>
-        <WindowSelector value={liveWindow} onChange={setLiveWindow} />
+        <div className="flex items-end gap-4">
+          <DemoControlPanel />
+          <WindowSelector value={liveWindow} onChange={setLiveWindow} />
+        </div>
       </div>
 
       {/* Risk gauge + trend chart side by side */}
