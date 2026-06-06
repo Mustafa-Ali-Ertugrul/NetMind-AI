@@ -4,7 +4,7 @@ Upload flow:
     1. Validate extension + size + magic bytes
     2. SHA-256 dedup: if a PcapFile with this hash already exists,
        return 200 with deduplicated=True and the existing job_id
-    3. Persist the file to disk under upload_dir/{storage_key}
+    3. Persist the blob via the object-store backend
     4. Insert PcapFile row (status="uploaded")
     5. Insert AnalysisJob row (status="queued")
     6. Enqueue Celery task analyze_pcap_task.delay(job_id)
@@ -15,13 +15,14 @@ Rate limited to 10 requests/minute per IP.
 from backend.api.rate_limit import limiter
 
 import hashlib
+import io
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
-from fastapi.responses import FileResponse
+from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -33,6 +34,7 @@ from backend.api.schemas import (
 )
 from backend.config import get_settings
 from backend.storage.models import AnalysisJob, PcapFile
+from backend.storage.object_store import get_object_store
 
 logger = logging.getLogger(__name__)
 
@@ -125,14 +127,13 @@ async def upload_pcap(
             deleted_at=existing.deleted_at,
         )
 
-    # Persist to disk
+    # Persist via object store (local disk or S3)
     storage_key = f"{sha256[:2]}/{sha256}{suffix}"
-    target = settings.upload_dir / storage_key
+    object_store = get_object_store(settings)
     try:
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(content)
+        object_store.put(storage_key, content)
     except OSError as exc:
-        logger.exception("Failed to write PCAP to disk: %s", target)
+        logger.exception("Failed to write PCAP object: %s", storage_key)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to persist upload: {exc}",
@@ -212,9 +213,10 @@ async def upload_pcap(
 async def download_pcap(
     pcap_id: UUID,
     db: AsyncSession = Depends(get_db_session),
-) -> FileResponse:
+) -> StreamingResponse:
     """Download the stored PCAP/PCAPNG artifact for a PCAP row."""
     settings = get_settings()
+    object_store = get_object_store(settings)
     pcap_res = await db.execute(select(PcapFile).where(PcapFile.id == pcap_id))
     pcap = pcap_res.scalar_one_or_none()
     if pcap is None:
@@ -228,20 +230,21 @@ async def download_pcap(
             detail=f"PCAP {pcap_id} has been deleted by retention policy",
         )
 
-    target = settings.upload_dir / pcap.storage_key
-    if not target.exists():
+    if not object_store.exists(pcap.storage_key):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"PCAP file is missing on disk: {pcap.storage_key}",
+            detail=f"PCAP object is missing: {pcap.storage_key}",
         )
+
+    content = object_store.get(pcap.storage_key)
 
     pcap.last_accessed_at = datetime.utcnow()
     await db.commit()
 
-    return FileResponse(
-        path=target,
-        filename=pcap.original_name,
+    return StreamingResponse(
+        io.BytesIO(content),
         media_type=pcap.mime_type or "application/vnd.tcpdump.pcap",
+        headers={"Content-Disposition": f'attachment; filename="{pcap.original_name}"'},
     )
 
 

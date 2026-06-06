@@ -50,12 +50,19 @@ async def test_download_pcap_returns_file_response_and_updates_access_time(tmp_p
         last_accessed_at=None,
     )
     db = _FakeAsyncSession([pcap])
-    monkeypatch.setattr(pcaps_routes, "get_settings", lambda: SimpleNamespace(upload_dir=tmp_path))
+    monkeypatch.setattr(
+        pcaps_routes,
+        "get_settings",
+        lambda: SimpleNamespace(upload_dir=tmp_path, object_store_backend="local"),
+    )
 
     response = await pcaps_routes.download_pcap(pcap.id, db)
 
-    assert Path(response.path) == artifact
-    assert response.filename == "sample.pcap"
+    # download_pcap now returns StreamingResponse
+    from fastapi.responses import StreamingResponse
+
+    assert isinstance(response, StreamingResponse)
+    assert response.media_type == "application/vnd.tcpdump.pcap"
     assert pcap.last_accessed_at is not None
     assert db.committed is True
 
@@ -69,7 +76,11 @@ async def test_download_pcap_deleted_row_returns_410(tmp_path, monkeypatch):
         deleted_at=datetime.utcnow(),
     )
     db = _FakeAsyncSession([pcap])
-    monkeypatch.setattr(pcaps_routes, "get_settings", lambda: SimpleNamespace(upload_dir=tmp_path))
+    monkeypatch.setattr(
+        pcaps_routes,
+        "get_settings",
+        lambda: SimpleNamespace(upload_dir=tmp_path, object_store_backend="local"),
+    )
 
     with pytest.raises(HTTPException) as exc:
         await pcaps_routes.download_pcap(pcap.id, db)

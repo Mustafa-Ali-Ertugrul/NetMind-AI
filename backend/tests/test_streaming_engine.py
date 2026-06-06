@@ -256,8 +256,8 @@ class TestStreamingRuleEngineWriters:
         engine.process_event(_make_event())
         engine.flush()
 
-        # 9 rules in default registry
-        assert mock_writer.record_evaluation.call_count == 9
+        # 11 rules in default registry
+        assert mock_writer.record_evaluation.call_count == 11
 
     def test_flush_stats_detects_which_rule_triggered(self):
         """Only the rule(s) that produced findings should be marked triggered."""

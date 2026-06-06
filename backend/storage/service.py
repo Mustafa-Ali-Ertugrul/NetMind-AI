@@ -23,6 +23,7 @@ from backend.storage.exceptions import (
     PcapNotFoundError,
 )
 from backend.storage.models import AiAssessment, Alert, AnalysisJob, PcapFile
+from backend.storage.object_store import get_object_store, ObjectStore
 from backend.storage.schemas import (
     ArtifactInfo,
     CleanupResult,
@@ -41,6 +42,7 @@ class StorageService:
         self.settings = settings
         self.pcap_dir = settings.upload_dir
         self.artifact_dir = settings.artifact_storage_path
+        self.object_store = get_object_store(settings)
         self.disk_monitor = DiskMonitor(
             path=self.pcap_dir,
             threshold_pct=settings.disk_usage_threshold_pct,
@@ -57,15 +59,18 @@ class StorageService:
         return pcap
 
     async def get_pcap_path(self, pcap_id: UUID) -> Path:
-        """Resolve the on-disk path for a PCAP, raising if missing."""
+        """Resolve the on-disk path for a PCAP, raising if missing.
+
+        For S3 backends the file is downloaded to a temporary path;
+        the caller should treat it as read-only.
+        """
         pcap = await self.get_pcap(pcap_id)
-        target = self.pcap_dir / pcap.storage_key
-        if not target.exists():
-            raise PcapNotFoundError(f"PCAP {pcap_id} file is missing on disk: {pcap.storage_key}")
-        return target
+        if not self.object_store.exists(pcap.storage_key):
+            raise PcapNotFoundError(f"PCAP {pcap_id} file is missing: {pcap.storage_key}")
+        return self.object_store.get_as_path(pcap.storage_key)
 
     async def delete_pcap(self, pcap_id: UUID) -> None:
-        """Soft-delete a PCAP row and remove its file from disk.
+        """Soft-delete a PCAP row and remove its file from storage.
 
         Raises PcapNotFoundError if the record does not exist.
         The cascading relationship deletes analysis_jobs, alerts,
@@ -73,13 +78,11 @@ class StorageService:
         """
         pcap = await self.get_pcap(pcap_id)
 
-        # Remove from disk
-        target = self.pcap_dir / pcap.storage_key
-        if target.exists():
-            try:
-                target.unlink()
-            except OSError as exc:
-                logger.warning("Failed to delete PCAP file %s: %s", target, exc)
+        # Remove from object store
+        try:
+            self.object_store.delete(pcap.storage_key)
+        except OSError as exc:
+            logger.warning("Failed to delete PCAP object %s: %s", pcap.storage_key, exc)
 
         # Check for artifact dir and clean it
         for job in pcap.analysis_jobs:
@@ -91,7 +94,7 @@ class StorageService:
         await self.db.commit()
 
         logger.info(
-            "Deleted PCAP %s (sha256=%s, file=%s)",
+            "Deleted PCAP %s (sha256=%s, key=%s)",
             pcap_id,
             pcap.sha256[:12],
             pcap.storage_key,
@@ -274,10 +277,9 @@ class StorageService:
         result.expired_pcaps_found = len(expired)
 
         for pcap in expired:
-            target = self.pcap_dir / pcap.storage_key
             try:
-                if target.exists():
-                    target.unlink()
+                if self.object_store.exists(pcap.storage_key):
+                    self.object_store.delete(pcap.storage_key)
                     result.files_deleted += 1
 
                 pcap.status = "deleted"

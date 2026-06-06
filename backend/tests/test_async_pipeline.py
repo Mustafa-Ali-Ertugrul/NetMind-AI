@@ -222,6 +222,7 @@ class TestAnalyzeTaskHappyPath:
             patch("backend.worker.tasks.pcap_analysis.get_settings") as mock_settings,
         ):
             mock_settings.return_value.upload_dir = tmp_path
+            mock_settings.return_value.object_store_backend = "local"
             result = analyze_pcap_task.apply(args=[str(job_id)]).get()
 
         assert result["status"] == "completed"
@@ -267,6 +268,7 @@ class TestAnalyzeTaskFailures:
             patch("backend.worker.tasks.pcap_analysis.get_settings") as mock_settings,
         ):
             mock_settings.return_value.upload_dir = tmp_path
+            mock_settings.return_value.object_store_backend = "local"
             MockParser.return_value.parse_pcap.side_effect = TsharkError("tshark not found")
 
             result = analyze_pcap_task.apply(args=[str(job_id)]).get()
@@ -291,6 +293,7 @@ class TestAnalyzeTaskFailures:
 
         with patch("backend.worker.tasks.pcap_analysis.get_settings") as mock_settings:
             mock_settings.return_value.upload_dir = tmp_path
+            mock_settings.return_value.object_store_backend = "local"
             result = analyze_pcap_task.apply(args=[str(job_id)]).get()
 
         assert result["status"] == "failed"
@@ -316,6 +319,7 @@ class TestAnalyzeTaskFailures:
             patch("backend.worker.tasks.pcap_analysis.get_settings") as mock_settings,
         ):
             mock_settings.return_value.upload_dir = tmp_path
+            mock_settings.return_value.object_store_backend = "local"
             MockParser.return_value.parse_pcap.side_effect = RuntimeError("boom")
 
             result = analyze_pcap_task.apply(args=[str(job_id)]).get()

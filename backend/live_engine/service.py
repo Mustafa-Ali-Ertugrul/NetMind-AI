@@ -32,6 +32,7 @@ from sqlalchemy.orm import Session
 
 from backend.ingestion.event import FlowEvent
 from backend.ingestion.stream import EventConsumer, EventStream
+from backend.live_engine.adaptive_threshold import AdaptiveThresholdTracker
 from backend.live_engine.provider import EngineProvider, GlobalEngineProvider
 from backend.live_engine.streaming_engine import StreamingRuleEngine
 from backend.storage.live_alert_writer import LiveAlertWriter
@@ -77,9 +78,12 @@ class _BatchHandler:
         self,
         provider: EngineProvider,
         sync_session_factory: SyncSessionFactory | None,
+        adaptive_tracker: AdaptiveThresholdTracker | None = None,
     ) -> None:
         self._provider = provider
         self._sync_session_factory = sync_session_factory
+        self._adaptive_tracker = adaptive_tracker
+        self._engine_injected = False
 
     async def __call__(self, batch: list[FlowEvent]) -> None:
         """Process a batch: feed each event, then flush.
@@ -102,7 +106,11 @@ class _BatchHandler:
         When a sync session factory is bound the engine gets writers
         injected lazily on first access.
         """
-        return self._provider.get()
+        engine = self._provider.get()
+        if not self._engine_injected and self._adaptive_tracker is not None:
+            engine._adaptive = self._adaptive_tracker
+            self._engine_injected = True
+        return engine
 
 
 class LiveEngineService:
@@ -125,6 +133,8 @@ class LiveEngineService:
         max_queue: int = 10_000,
         batch_size: int = 100,
         flush_interval: float = 5.0,
+        adaptive_tracker: AdaptiveThresholdTracker | None = None,
+        adaptive_enabled: bool = True,
     ) -> None:
         self._provider = engine_provider or GlobalEngineProvider()
         self._stream = EventStream(max_size=max_queue)
@@ -134,6 +144,8 @@ class LiveEngineService:
         self._sync_session_factory: SyncSessionFactory | None = None
         self._start_time: float | None = None
         self._started = False
+        self._adaptive_tracker = adaptive_tracker
+        self._adaptive_enabled = adaptive_enabled
 
     # ------------------------------------------------------------------
     # Lifecycle
@@ -147,7 +159,7 @@ class LiveEngineService:
         if self._started:
             raise RuntimeError("LiveEngineService is already started")
 
-        handler = _BatchHandler(self._provider, self._sync_session_factory)
+        handler = _BatchHandler(self._provider, self._sync_session_factory, self._adaptive_tracker)
         self._consumer = EventConsumer(
             self._stream,
             handler,
@@ -232,3 +244,13 @@ class LiveEngineService:
             active_sessions=1,  # GlobalEngineProvider always 1
             uptime_seconds=round(uptime, 2),
         )
+
+    # ------------------------------------------------------------------
+    # Adaptive threshold stats (opt-in)
+    # ------------------------------------------------------------------
+
+    def adaptive_stats(self) -> dict[str, float] | None:
+        """Return current adaptive threshold statistics if enabled."""
+        if self._adaptive_tracker is None:
+            return None
+        return self._adaptive_tracker.get_all_stats()

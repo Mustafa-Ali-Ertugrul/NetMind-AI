@@ -16,3 +16,4 @@ class AssessorConfig:
         self.ollama_model: str = os.getenv("NETMIND_OLLAMA_MODEL", "llama3.1:8b")
         self.request_timeout_sec: int = int(os.getenv("NETMIND_AI_TIMEOUT", "30"))
         self.enable_ai: bool = os.getenv("NETMIND_AI_ENABLED", "true").lower() == "true"
+        self.min_severity: str = os.getenv("NETMIND_AI_MIN_SEVERITY", "HIGH")

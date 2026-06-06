@@ -25,6 +25,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
+from backend.contracts.enums import RiskLabel, Severity
 from backend.contracts.features import (
     AggregatedFeatures,
     ConnectionProfile,
@@ -40,6 +41,8 @@ from backend.feature_extractor.http_summary import HTTPSummaryBuilder
 from backend.ingestion.event import FlowEvent
 from backend.ingestion.flow_aggregator import StreamingFlowAggregator
 from backend.rule_engine.engine import RuleEngine
+from backend.rule_engine.base_rule import BaseDetectionRule
+from backend.live_engine.adaptive_threshold import AdaptiveThresholdTracker
 
 if TYPE_CHECKING:
     from backend.storage.live_alert_writer import LiveAlertWriter
@@ -301,12 +304,14 @@ class StreamingRuleEngine:
         session_id: UUID | None = None,
         alert_writer: LiveAlertWriter | None = None,
         stats_writer: RuleStatsWriter | None = None,
+        adaptive: AdaptiveThresholdTracker | None = None,
     ) -> None:
         self._session_id = session_id or uuid4()
         self._rule_engine = rule_engine or RuleEngine()
         self._feature_builder = _StreamingFeatureBuilder(self._session_id)
         self._alert_writer = alert_writer
         self._stats_writer = stats_writer
+        self._adaptive = adaptive
         self._alerts_generated = 0
 
     @property
@@ -333,6 +338,25 @@ class StreamingRuleEngine:
         """
         features = self._feature_builder.finalize()
         findings, overall = self._rule_engine.analyze(features)
+
+        # ── Adaptive threshold calibration ────────────────────────────
+        if self._adaptive is not None:
+            # Pass 1: adapt scores using baselines built from previous windows
+            for finding in findings:
+                original_raw = float(finding.raw_score)
+                adapted_raw = float(self._adaptive.adapt(finding.rule_id, original_raw))
+                adapted_raw = min(max(adapted_raw, 0.0), 1.0)
+                finding.raw_score = adapted_raw
+                finding.risk_score = self._compute_risk_score_from_raw(adapted_raw)
+                finding.severity = self._risk_score_to_severity(finding.risk_score)
+
+            # Pass 2: record originals so next window does not self-bias
+            for finding in findings:
+                self._adaptive.record(finding.rule_id, float(finding.raw_score))
+
+            # Recompute overall risk after adaptation
+            overall = self._recompute_overall(findings)
+
         self._alerts_generated += len(findings)
 
         # ── Alert writer hook (optional) ────────────────────────────
@@ -358,6 +382,80 @@ class StreamingRuleEngine:
                 )
 
         return findings, overall
+
+    # ------------------------------------------------------------------
+    # Adaptive helpers (mirrors BaseDetectionRule statics)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _compute_risk_score_from_raw(raw_score: float) -> int:
+        if raw_score <= 0.0:
+            return 0
+        clamped = min(max(raw_score, 0.0), 1.0)
+        return min(int(clamped * 100), 100)
+
+    @staticmethod
+    def _score_to_label(score: int) -> RiskLabel:
+        if score >= 76:
+            return RiskLabel.CRITICAL
+        if score >= 51:
+            return RiskLabel.HIGH
+        if score >= 26:
+            return RiskLabel.MEDIUM
+        if score >= 1:
+            return RiskLabel.LOW
+        return RiskLabel.INFORMATIONAL
+
+    @staticmethod
+    def _risk_score_to_severity(risk_score: int) -> Severity:
+        if risk_score >= 76:
+            return Severity.CRITICAL
+        if risk_score >= 51:
+            return Severity.HIGH
+        if risk_score >= 26:
+            return Severity.MEDIUM
+        if risk_score >= 1:
+            return Severity.LOW
+        return Severity.INFORMATIONAL
+
+    @staticmethod
+    def _recompute_overall(findings: list[Finding]) -> OverallRiskScore:
+        if not findings:
+            return OverallRiskScore(
+                max_score=0,
+                weighted_score=0,
+                severity_label=RiskLabel.INFORMATIONAL,
+                total_findings=0,
+                findings_by_severity={},
+                top_finding_ids=[],
+                failed_rules=[],
+            )
+        max_score = max(f.risk_score for f in findings)
+        total_weight = 0
+        weighted_sum = 0
+        by_severity: dict[str, int] = {}
+        for f in findings:
+            w = f.severity.value
+            total_weight += w
+            weighted_sum += f.risk_score * w
+            by_severity[f.severity.name] = by_severity.get(f.severity.name, 0) + 1
+        weighted_score = weighted_sum // total_weight if total_weight > 0 else 0
+        severity_label = StreamingRuleEngine._score_to_label(weighted_score)
+        top_finding_ids = sorted(
+            (f.id for f in findings),
+            key=lambda fid: max((f.risk_score for f in findings if f.id == fid), default=0),
+            reverse=True,
+        )[:5]
+        failed_rules = []
+        return OverallRiskScore(
+            max_score=max_score,
+            weighted_score=weighted_score,
+            severity_label=severity_label,
+            total_findings=len(findings),
+            findings_by_severity=by_severity,
+            top_finding_ids=top_finding_ids,
+            failed_rules=failed_rules,
+        )
 
     def reset(self) -> None:
         """Reset internal state (useful between sessions or tests)."""

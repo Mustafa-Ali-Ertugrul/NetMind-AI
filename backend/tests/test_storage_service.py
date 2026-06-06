@@ -101,6 +101,12 @@ def _make_settings(tmp_path: Path, **overrides) -> SimpleNamespace:
         "disk_usage_threshold_pct": 85.0,
         "artifact_retention_hours": 168,
         "storage_cleanup_enabled": True,
+        "object_store_backend": "local",
+        "s3_endpoint_url": None,
+        "s3_bucket": "",
+        "s3_access_key": None,
+        "s3_secret_key": None,
+        "s3_region": "us-east-1",
     }
     base.update(overrides)
     return SimpleNamespace(**base)

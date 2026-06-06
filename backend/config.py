@@ -7,6 +7,7 @@ validation and type coercion.
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -56,6 +57,19 @@ class Settings(BaseSettings):
     celery_task_soft_time_limit_sec: int = Field(default=540)
 
     enable_docs: bool = Field(default=True)
+
+    # Packet storage: none = skip DB write, sample = evenly-spaced subset,
+    # all = every packet (legacy / debug).
+    store_packets: Literal["none", "sample", "all"] = Field(default="sample")
+    store_packets_sample_limit: int = Field(default=1000)
+
+    # Object storage backend (local = disk, s3 = minio/s3-compatible)
+    object_store_backend: Literal["local", "s3"] = Field(default="local")
+    s3_endpoint_url: str | None = Field(default=None)
+    s3_bucket: str = Field(default="netmind-pcaps")
+    s3_access_key: str | None = Field(default=None)
+    s3_secret_key: str | None = Field(default=None)
+    s3_region: str = Field(default="us-east-1")
 
     @property
     def upload_max_size_bytes(self) -> int:

@@ -125,3 +125,38 @@ class TestPacketWriter:
         assert added[0].dst_port is None
         assert added[0].tcp_flags is None
         assert added[0].info is None
+
+    def test_mode_none_skips_write(self):
+        """mode='none' should skip DB writes entirely."""
+        db = MagicMock()
+        pkt = _make_parsed_packet()
+        parsed = ParsedProtocols(
+            pcap_id=TEST_PCAP,
+            packets=[pkt],
+            parser_version="test",
+            parse_duration_ms=0,
+        )
+        assert write_packets(db, pcap_id=TEST_PCAP, parsed=parsed, mode="none") == 0
+        db.add_all.assert_not_called()
+
+    def test_mode_sample_limits_count(self):
+        """mode='sample' should evenly space packets and cap at sample_limit."""
+        db = MagicMock()
+        packets = [_make_parsed_packet(packet_number=i) for i in range(1, 5001)]
+        parsed = ParsedProtocols(
+            pcap_id=TEST_PCAP,
+            packets=packets,
+            parser_version="test",
+            parse_duration_ms=0,
+        )
+        count = write_packets(db, pcap_id=TEST_PCAP, parsed=parsed, mode="sample", sample_limit=100)
+        assert count == 100
+        db.add_all.assert_called()
+        # add_all may be called multiple times due to batching; collect all added items.
+        all_added = []
+        for call in db.add_all.call_args_list:
+            all_added.extend(call[0][0])
+        assert len(all_added) == 100
+        # Verify first and last sampled packet numbers for even spread.
+        assert all_added[0].packet_number == 1
+        assert all_added[-1].packet_number == 4951

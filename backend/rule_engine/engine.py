@@ -10,10 +10,12 @@ from backend.contracts.findings import Finding, OverallRiskScore
 from .registry import RuleRegistry
 from .rules import (
     BeaconingRule,
+    CleartextCredentialsRule,
     DNSTunnelingRule,
     FTPBruteForceRule,
     HTTPAnomalyRule,
     ICMPFloodRule,
+    LargeOutboundRule,
     PortScanRule,
     SMTPAbuseRule,
     SYNFloodRule,
@@ -49,6 +51,8 @@ class RuleEngine:
         reg.register(TopTalkerRule())
         reg.register(HTTPAnomalyRule())
         reg.register(BeaconingRule())
+        reg.register(CleartextCredentialsRule())
+        reg.register(LargeOutboundRule())
         return reg
 
     @property

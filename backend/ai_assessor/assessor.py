@@ -16,6 +16,7 @@ from backend.ai_assessor.exceptions import (
 from backend.ai_assessor.prompts import build_assessment_prompt
 from backend.ai_assessor.providers import BaseProvider, OllamaProvider
 from backend.contracts.ai_output import AIAssessment, FindingRationale, RemediationStep
+from backend.contracts.enums import Severity
 from backend.contracts.findings import Finding, OverallRiskScore
 
 logger = logging.getLogger("netmind.ai_assessor")
@@ -57,6 +58,10 @@ class AIAssessor:
     ) -> AIAssessment:
         """Run the AI assessment on the given rule-engine output.
 
+        Only findings at or above ``self._config.min_severity`` are sent
+        to the LLM. Lower-severity findings are silently dropped to
+        control token use and focus the LLM on high-impact events.
+
         Args:
             findings: Rule-engine findings (zero or more).
             overall: Aggregated risk score.
@@ -69,12 +74,17 @@ class AIAssessor:
             logger.info("AI Assessor disabled via NETMIND_AI_ENABLED=false")
             return self._fallback_assessment(findings, overall, fallback_used=False)
 
-        if not findings:
+        filtered = self._filter_by_severity(findings)
+        if not filtered:
+            logger.info(
+                "No findings at or above NETMIND_AI_MIN_SEVERITY=%s; skipping LLM call",
+                self._config.min_severity,
+            )
             return self._fallback_assessment(findings, overall, fallback_used=True)
 
         t0 = time.perf_counter()
         try:
-            system_prompt, user_prompt = build_assessment_prompt(findings, overall)
+            system_prompt, user_prompt = build_assessment_prompt(filtered, overall)
             raw = self._provider.generate(
                 prompt=user_prompt,
                 system=system_prompt,
@@ -84,22 +94,34 @@ class AIAssessor:
             logger.warning("LLM call failed, using fallback: %s", exc)
             elapsed_ms = int((time.perf_counter() - t0) * 1000)
             return self._fallback_assessment(
-                findings, overall, fallback_used=True, generation_time_ms=elapsed_ms
+                filtered, overall, fallback_used=True, generation_time_ms=elapsed_ms
             )
 
         elapsed_ms = int((time.perf_counter() - t0) * 1000)
 
         try:
-            return self._parse_assessment(raw, findings, overall, elapsed_ms, fallback_used=False)
+            return self._parse_assessment(raw, filtered, overall, elapsed_ms, fallback_used=False)
         except InvalidResponseError as exc:
             logger.warning("LLM response invalid, using fallback: %s", exc)
             return self._fallback_assessment(
-                findings, overall, fallback_used=True, generation_time_ms=elapsed_ms
+                filtered, overall, fallback_used=True, generation_time_ms=elapsed_ms
             )
 
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
+
+    def _filter_by_severity(self, findings: list[Finding]) -> list[Finding]:
+        """Keep only findings at or above ``self._config.min_severity``."""
+        try:
+            floor = Severity[self._config.min_severity.upper()].value
+        except KeyError:
+            logger.warning(
+                "Unknown min_severity=%r; defaulting to HIGH",
+                self._config.min_severity,
+            )
+            floor = Severity.HIGH.value
+        return [f for f in findings if f.severity.value >= floor]
 
     def _default_provider(self) -> BaseProvider:
         return OllamaProvider(
