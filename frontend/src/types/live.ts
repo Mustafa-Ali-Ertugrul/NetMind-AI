@@ -57,6 +57,42 @@ export interface LiveMetricsResponse {
   uptime_seconds: number;
 }
 
+/** ───── Sprint 9A: Live Monitor ───── */
+
+/** Single top-talker row (merged src/dst list with direction column). */
+export interface LiveTalkerItem {
+  ip: string;
+  direction: 'src' | 'dst';
+  bytes: number;
+  packets: number;
+}
+
+export interface LiveTalkersResponse {
+  window: string;
+  talkers: LiveTalkerItem[];
+}
+
+/** Current risk snapshot. */
+export interface RiskStreamSnapshot {
+  timestamp: string;
+  risk_avg: number;
+  threat_level: string;
+  top_rules_triggered: string[];
+}
+
+/** One minute-bucketed data point for the trend chart. */
+export interface RiskBucket {
+  timestamp: string;
+  risk_avg: number;
+  count: number;
+}
+
+export interface RiskStreamResponse {
+  window: string;
+  current: RiskStreamSnapshot;
+  series: RiskBucket[];
+}
+
 /** Parameters for alert list filtering. */
 export interface AlertListParams {
   status?: string;

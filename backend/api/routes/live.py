@@ -27,6 +27,8 @@ from backend.api.schemas import (
     LiveAlertListResponse,
     LiveAlertResponse,
     LiveMetricsResponse,
+    LiveTalkersResponse,
+    RiskStreamResponse,
     RuleStatsResponse,
     TimelineBucketResponse,
 )
@@ -274,3 +276,42 @@ async def get_live_metrics(
         active_sessions=m.active_sessions,
         uptime_seconds=m.uptime_seconds,
     )
+
+
+# ── Endpoint: top talkers (GET /live/talkers) ──────────────────────────────
+
+
+@router.get("/talkers", response_model=LiveTalkersResponse)
+async def get_live_talkers(
+    window: str = Query("5m", description="Time window (e.g. 5m, 10m, 1h, 1d)"),
+    limit: int = Query(10, ge=1, le=100, description="Max talkers to return"),
+    db: AsyncSession = Depends(get_db_session),
+) -> LiveTalkersResponse:
+    """Top-N IP addresses by traffic volume across recently-uploaded PCAPs.
+
+    Aggregates the ``Flow`` table for PCAPs whose ``uploaded_at`` falls
+    within the last ``window``.
+    """
+    from backend.analytics.aggregators.live_talkers import LiveTalkerAggregator
+
+    aggregator = LiveTalkerAggregator()
+    return await aggregator.aggregate(db, window=window, limit=limit)
+
+
+# ── Endpoint: risk stream (GET /live/risk-stream) ──────────────────────────
+
+
+@router.get("/risk-stream", response_model=RiskStreamResponse)
+async def get_risk_stream(
+    window: str = Query("5m", description="Time window (e.g. 5m, 10m, 1h, 1d)"),
+    db: AsyncSession = Depends(get_db_session),
+) -> RiskStreamResponse:
+    """Aggregated risk snapshot + time series over recent PCAPs.
+
+    Returns a point-in-time summary (average risk, threat level,
+    top rules) plus a minute-bucketed risk trend.
+    """
+    from backend.analytics.aggregators.live_risk import LiveRiskAggregator
+
+    aggregator = LiveRiskAggregator()
+    return await aggregator.aggregate(db, window=window)

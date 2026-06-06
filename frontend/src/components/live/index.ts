@@ -2,3 +2,6 @@ export { ActiveAlerts } from './ActiveAlerts';
 export { AlertTimeline } from './AlertTimeline';
 export { RuleStatistics } from './RuleStatistics';
 export { ServiceMetrics } from './ServiceMetrics';
+export { RiskSummaryCard } from './RiskSummaryCard';
+export { LiveTopTalkers } from './LiveTopTalkers';
+export { RiskTrendChart } from './RiskTrendChart';

@@ -4,6 +4,8 @@ import type {
   TimelineBucketResponse,
   RuleStatsResponse,
   LiveMetricsResponse,
+  LiveTalkersResponse,
+  RiskStreamResponse,
   AlertListParams,
   TimelineParams,
 } from '@/types/live';
@@ -31,6 +33,22 @@ export async function getStats(params?: { session_id?: string; limit?: number })
 /** Fetch live engine health metrics. */
 export async function getMetrics(): Promise<LiveMetricsResponse> {
   const { data } = await apiClient.get<LiveMetricsResponse>('/live/metrics');
+  return data;
+}
+
+/** Fetch top talkers (merged src/dst list sorted by bytes). */
+export async function getLiveTalkers(window = '5m', limit = 20): Promise<LiveTalkersResponse> {
+  const { data } = await apiClient.get<LiveTalkersResponse>('/live/talkers', {
+    params: { window, limit },
+  });
+  return data;
+}
+
+/** Fetch risk-stream snapshot + minute-bucketed trend series. */
+export async function getLiveRiskStream(window = '5m'): Promise<RiskStreamResponse> {
+  const { data } = await apiClient.get<RiskStreamResponse>('/live/risk-stream', {
+    params: { window },
+  });
   return data;
 }
 

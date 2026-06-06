@@ -1,5 +1,5 @@
-import { useLiveAlerts, useAlertTimeline, useRuleStats, useLiveMetrics } from '@/hooks/useLive';
-import { ActiveAlerts, AlertTimeline, RuleStatistics, ServiceMetrics } from '@/components/live';
+import { useLiveAlerts, useAlertTimeline, useRuleStats, useLiveMetrics, useLiveTalkers, useLiveRiskStream } from '@/hooks/useLive';
+import { ActiveAlerts, AlertTimeline, RuleStatistics, ServiceMetrics, RiskSummaryCard, LiveTopTalkers, RiskTrendChart } from '@/components/live';
 import { Radio } from 'lucide-react';
 
 export function LiveMonitorPage() {
@@ -7,6 +7,8 @@ export function LiveMonitorPage() {
   const timeline = useAlertTimeline({ bucket: 'hour', hours: 24 });
   const stats = useRuleStats({ limit: 20 });
   const metrics = useLiveMetrics();
+  const talkers = useLiveTalkers('5m', 20);
+  const risk = useLiveRiskStream('5m');
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -18,7 +20,28 @@ export function LiveMonitorPage() {
         <p className="text-sm text-gray-500">Real-time streaming alerts, timeline, and engine health</p>
       </div>
 
-      {/* Top row: Metrics bar */}
+      {/* Sprint 9A: Risk gauge + trend chart side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RiskSummaryCard
+          data={risk.data?.current}
+          isLoading={risk.isLoading}
+          isError={risk.isError}
+        />
+        <RiskTrendChart
+          data={risk.data?.series}
+          isLoading={risk.isLoading}
+          isError={risk.isError}
+        />
+      </div>
+
+      {/* Sprint 9A: Top Talkers table full width */}
+      <LiveTopTalkers
+        data={talkers.data?.talkers}
+        isLoading={talkers.isLoading}
+        isError={talkers.isError}
+      />
+
+      {/* Metrics bar */}
       <ServiceMetrics
         data={metrics.data}
         isLoading={metrics.isLoading}
@@ -26,7 +49,7 @@ export function LiveMonitorPage() {
         error={metrics.error as Error | null}
       />
 
-      {/* Middle row: Alerts + Timeline side by side */}
+      {/* Alerts + Timeline side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ActiveAlerts
           data={alerts.data?.items}
@@ -42,7 +65,7 @@ export function LiveMonitorPage() {
         />
       </div>
 
-      {/* Bottom row: Rule stats full width */}
+      {/* Rule stats full width */}
       <RuleStatistics
         data={stats.data}
         isLoading={stats.isLoading}

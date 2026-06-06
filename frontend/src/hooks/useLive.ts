@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { getAlerts, getTimeline, getStats, getMetrics, ingestEvent } from '@/api/live';
+import { getAlerts, getTimeline, getStats, getMetrics, getLiveTalkers, getLiveRiskStream, ingestEvent } from '@/api/live';
 import type { AlertListParams, TimelineParams } from '@/types/live';
 
 /** Poll active alerts — most frequently. */
@@ -50,5 +50,27 @@ export function useLiveMetrics() {
 export function useIngestMutation() {
   return useMutation({
     mutationFn: ingestEvent,
+  });
+}
+
+/** Poll top talkers every 10 s. */
+export function useLiveTalkers(window = '5m', limit = 20) {
+  return useQuery({
+    queryKey: ['live', 'talkers', window, limit],
+    queryFn: () => getLiveTalkers(window, limit),
+    refetchInterval: 10_000,
+    staleTime: 5_000,
+    retry: 2,
+  });
+}
+
+/** Poll risk-stream every 5 s. */
+export function useLiveRiskStream(window = '5m') {
+  return useQuery({
+    queryKey: ['live', 'risk-stream', window],
+    queryFn: () => getLiveRiskStream(window),
+    refetchInterval: 5_000,
+    staleTime: 2_000,
+    retry: 2,
   });
 }
