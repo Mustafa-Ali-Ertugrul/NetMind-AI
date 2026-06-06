@@ -315,3 +315,145 @@ class AiAssessment(Base):
         Index("idx_ai_pcap_id", "pcap_id"),
         Index("idx_ai_risk_score", "risk_score"),
     )
+
+
+class LiveAlert(Base):
+    __tablename__ = "live_alerts"
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    session_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), nullable=False)
+    rule_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    severity: Mapped[str] = mapped_column(String(16), nullable=False)
+    confidence: Mapped[str] = mapped_column(String(16), nullable=False)
+    risk_score: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    title: Mapped[str] = mapped_column(Text, nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    recommendation: Mapped[str | None] = mapped_column(Text, nullable=True)
+    affected_entities: Mapped[list[str]] = mapped_column(JSONB, nullable=True, default=list)
+    evidence: Mapped[dict] = mapped_column(JSONB, nullable=True, default=dict)
+    feature_snapshot: Mapped[dict] = mapped_column(JSONB, nullable=True, default=dict)
+    timestamp_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    timestamp_end: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    triggered_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="active")
+    raw_score: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utcnow, onupdate=_utcnow
+    )
+
+    events: Mapped[list["AlertEvent"]] = relationship(
+        back_populates="alert", cascade="all, delete-orphan"
+    )
+
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('active','acknowledged','dismissed','resolved')",
+            name="ck_live_alerts_status",
+        ),
+        CheckConstraint(
+            "severity IN ('critical','high','medium','low','informational')",
+            name="ck_live_alerts_severity",
+        ),
+        CheckConstraint(
+            "confidence IN ('low','medium','high','critical')",
+            name="ck_live_alerts_confidence",
+        ),
+        Index("idx_live_alerts_session_id", "session_id"),
+        Index("idx_live_alerts_rule_id", "rule_id"),
+        Index("idx_live_alerts_triggered_at", "triggered_at"),
+        Index("idx_live_alerts_status", "status"),
+        Index("idx_live_alerts_severity_triggered", "severity", "triggered_at"),
+    )
+
+
+class AlertEvent(Base):
+    __tablename__ = "alert_events"
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    alert_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("live_alerts.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    event_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    actor: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+    alert: Mapped["LiveAlert"] = relationship(back_populates="events")
+
+    __table_args__ = (
+        CheckConstraint(
+            "event_type IN ('created','acknowledged','dismissed','resolved','reopened')",
+            name="ck_alert_events_type",
+        ),
+        Index("idx_alert_events_alert_id", "alert_id"),
+        Index("idx_alert_events_created", "created_at"),
+    )
+
+
+class RuleStats(Base):
+    __tablename__ = "rule_stats"
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    rule_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    session_id: Mapped[UUID | None] = mapped_column(PG_UUID(as_uuid=True), nullable=True)
+    evaluations: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    hits: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    miss: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    avg_risk_score: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    max_risk_score: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    rolling_window_size: Mapped[int] = mapped_column(Integer, nullable=False, default=100)
+    last_evaluation_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utcnow, onupdate=_utcnow
+    )
+
+    __table_args__ = (
+        Index("idx_rule_stats_rule_id", "rule_id"),
+        Index("idx_rule_stats_session_id", "session_id"),
+        Index("idx_rule_stats_last_eval_at", "last_evaluation_at"),
+        Index("idx_rule_stats_rule_updated", "rule_id", "updated_at"),
+    )
+
+
+class RulePerformanceHistory(Base):
+    __tablename__ = "rule_performance_history"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    rule_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    bucket_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    bucket_duration_seconds: Mapped[int] = mapped_column(Integer, nullable=False, default=60)
+    evaluations: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    hits: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    false_positive_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    avg_risk_score: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+
+    __table_args__ = (
+        Index("idx_rph_rule_id", "rule_id"),
+        Index("idx_rph_bucket_start", "bucket_start"),
+        Index("idx_rph_rule_bucket", "rule_id", "bucket_start"),
+    )
+
+
+class FlowSample(Base):
+    __tablename__ = "flow_samples"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    session_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), nullable=False)
+    captured_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    src_ip: Mapped[IPv4Address | IPv6Address] = mapped_column(INET, nullable=False)
+    dst_ip: Mapped[IPv4Address | IPv6Address] = mapped_column(INET, nullable=False)
+    src_port: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    dst_port: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    protocol: Mapped[str] = mapped_column(String(16), nullable=False)
+    bytes_total: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    packets_total: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    flow_metadata: Mapped[dict] = mapped_column(JSONB, nullable=True, default=dict)
+
+    __table_args__ = (
+        Index("idx_flow_samples_session_id", "session_id"),
+        Index("idx_flow_samples_captured_at", "captured_at"),
+        Index("idx_flow_samples_session_time", "session_id", "captured_at"),
+    )
