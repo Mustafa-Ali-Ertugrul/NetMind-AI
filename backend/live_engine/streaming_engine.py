@@ -22,6 +22,7 @@ from __future__ import annotations
 import logging
 from collections import defaultdict
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
 from backend.contracts.features import (
@@ -39,6 +40,10 @@ from backend.feature_extractor.http_summary import HTTPSummaryBuilder
 from backend.ingestion.event import FlowEvent
 from backend.ingestion.flow_aggregator import StreamingFlowAggregator
 from backend.rule_engine.engine import RuleEngine
+
+if TYPE_CHECKING:
+    from backend.storage.live_alert_writer import LiveAlertWriter
+    from backend.storage.rule_stats_writer import RuleStatsWriter
 
 logger = logging.getLogger("netmind.live_engine.streaming")
 
@@ -294,10 +299,14 @@ class StreamingRuleEngine:
         self,
         rule_engine: RuleEngine | None = None,
         session_id: UUID | None = None,
+        alert_writer: LiveAlertWriter | None = None,
+        stats_writer: RuleStatsWriter | None = None,
     ) -> None:
         self._session_id = session_id or uuid4()
         self._rule_engine = rule_engine or RuleEngine()
         self._feature_builder = _StreamingFeatureBuilder(self._session_id)
+        self._alert_writer = alert_writer
+        self._stats_writer = stats_writer
 
     @property
     def session_id(self) -> UUID:
@@ -318,7 +327,31 @@ class StreamingRuleEngine:
         ``RuleEngine.analyze()``.
         """
         features = self._feature_builder.finalize()
-        return self._rule_engine.analyze(features)
+        findings, overall = self._rule_engine.analyze(features)
+
+        # ── Alert writer hook (optional) ────────────────────────────
+        if self._alert_writer is not None:
+            self._alert_writer.write_alerts(findings)
+
+        # ── Rule stats writer hook (optional) ───────────────────────
+        if self._stats_writer is not None:
+            # Build rule-level outcome lookup from findings
+            rule_findings: dict[str, list[float]] = {}
+            for finding in findings:
+                rule_findings.setdefault(finding.rule_id, []).append(float(finding.risk_score))
+
+            for rule in self._rule_engine.registry.get_all():
+                scores = rule_findings.get(rule.rule_id, [])
+                triggered = len(scores) > 0
+                max_risk = max(scores) if scores else 0.0
+                self._stats_writer.record_evaluation(
+                    rule.rule_id,
+                    triggered=triggered,
+                    risk_score=max_risk,
+                    session_id=self._session_id,
+                )
+
+        return findings, overall
 
     def reset(self) -> None:
         """Reset internal state (useful between sessions or tests)."""

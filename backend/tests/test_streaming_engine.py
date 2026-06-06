@@ -219,3 +219,66 @@ class TestStreamingRuleEngine:
         assert profile.failed_connection_ratio > 0.0, (
             "failed_connection_ratio should detect RST flows"
         )
+
+
+class TestStreamingRuleEngineWriters:
+    """Writer hook integration tests (Adım 6)."""
+
+    def test_flush_without_writers_same_as_before(self):
+        """When writers are None, flush() behaviour is unchanged."""
+        engine = StreamingRuleEngine()
+        engine.process_event(_make_event())
+        findings, overall = engine.flush()
+        assert isinstance(findings, list)
+        assert overall is not None
+
+    def test_flush_calls_alert_writer(self):
+        """flush() should delegate findings to alert_writer."""
+        from unittest.mock import MagicMock
+
+        mock_writer = MagicMock()
+        mock_writer.write_alerts.return_value = MagicMock(success=True, count=1)
+
+        engine = StreamingRuleEngine(alert_writer=mock_writer)
+        engine.process_event(_make_event())
+        engine.flush()
+
+        mock_writer.write_alerts.assert_called_once()
+
+    def test_flush_calls_stats_writer_per_rule(self):
+        """flush() should call record_evaluation for each registered rule."""
+        from unittest.mock import MagicMock
+
+        mock_writer = MagicMock()
+        mock_writer.record_evaluation.return_value = MagicMock(success=True, count=1)
+
+        engine = StreamingRuleEngine(stats_writer=mock_writer)
+        engine.process_event(_make_event())
+        engine.flush()
+
+        # 9 rules in default registry
+        assert mock_writer.record_evaluation.call_count == 9
+
+    def test_flush_stats_detects_which_rule_triggered(self):
+        """Only the rule(s) that produced findings should be marked triggered."""
+        from unittest.mock import MagicMock
+
+        mock_writer = MagicMock()
+        mock_writer.record_evaluation.return_value = MagicMock(success=True, count=1)
+
+        engine = StreamingRuleEngine(stats_writer=mock_writer)
+        # Send a large enough event that rules fire
+        engine.process_event(_make_event(payload_bytes=5000))
+        findings, _ = engine.flush()
+
+        triggered_rules = {f.rule_id for f in findings}
+
+        for call_args in mock_writer.record_evaluation.call_args_list:
+            rule_id_arg = call_args[0][0]
+            triggered_arg = call_args[1].get("triggered", False)
+
+            if rule_id_arg in triggered_rules:
+                assert triggered_arg, (
+                    f"Rule {rule_id_arg} triggered a finding but record_evaluation(triggered=False)"
+                )
+            # Not asserting not-triggered rules — they may still correctly report False
