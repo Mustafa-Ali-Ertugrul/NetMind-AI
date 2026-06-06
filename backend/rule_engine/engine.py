@@ -9,10 +9,15 @@ from backend.contracts.findings import Finding, OverallRiskScore
 
 from .registry import RuleRegistry
 from .rules import (
+    BeaconingRule,
     DNSTunnelingRule,
     FTPBruteForceRule,
+    HTTPAnomalyRule,
+    ICMPFloodRule,
     PortScanRule,
     SMTPAbuseRule,
+    SYNFloodRule,
+    TopTalkerRule,
 )
 
 logger = logging.getLogger("netmind.rule_engine")
@@ -33,10 +38,17 @@ class RuleEngine:
     @staticmethod
     def _default_registry() -> RuleRegistry:
         reg = RuleRegistry()
+        # Original 4 rules (Sprints 1-4)
         reg.register(PortScanRule())
         reg.register(DNSTunnelingRule())
         reg.register(FTPBruteForceRule())
         reg.register(SMTPAbuseRule())
+        # Sprint 9B rules
+        reg.register(SYNFloodRule())
+        reg.register(ICMPFloodRule())
+        reg.register(TopTalkerRule())
+        reg.register(HTTPAnomalyRule())
+        reg.register(BeaconingRule())
         return reg
 
     @property

@@ -3,7 +3,7 @@ import * as echarts from 'echarts/core';
 import { BarChart } from 'echarts/charts';
 import { CanvasRenderer } from 'echarts/renderers';
 import { TitleComponent, TooltipComponent, GridComponent } from 'echarts/components';
-import type { ECharts, EChartsOption } from 'echarts/core';
+import type { ECharts, EChartsCoreOption } from 'echarts/core';
 import type { TopTalkersResult, TopTalkerItem } from '@/types/api';
 
 echarts.use([BarChart, CanvasRenderer, TitleComponent, TooltipComponent, GridComponent]);
@@ -24,7 +24,7 @@ function useChartInit(ref: React.RefObject<HTMLDivElement | null>) {
   return chartRef;
 }
 
-function buildBarOption(title: string, items: TopTalkerItem[]): EChartsOption {
+function buildBarOption(title: string, items: TopTalkerItem[]): EChartsCoreOption {
   const sorted = [...items].sort((a, b) => b.packets - a.packets).slice(0, 10);
   return {
     title: { text: title, left: 'center', textStyle: { fontSize: 12, fontWeight: 'bold' } },
