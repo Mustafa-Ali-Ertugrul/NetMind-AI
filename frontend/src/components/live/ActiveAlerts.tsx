@@ -67,7 +67,7 @@ export function ActiveAlerts({ data, total, isLoading, isError, error }: ActiveA
     );
   }
 
-  const alerts = data ?? [];
+  const alerts = [...(data ?? [])].sort((a, b) => b.risk_score - a.risk_score);
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5">
@@ -96,13 +96,19 @@ export function ActiveAlerts({ data, total, isLoading, isError, error }: ActiveA
                   <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide ${severityClass(alert.severity)}`}>
                     {alert.severity}
                   </span>
+                  {alert.severity?.toLowerCase() === 'critical' && (
+                    <span className="relative flex h-2 w-2 ml-0.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                    </span>
+                  )}
                   <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide ${statusClass(alert.status)}`}>
                     {alert.status}
                   </span>
                 </div>
                 <span className="text-xs text-gray-400">{formatDate(alert.triggered_at)}</span>
               </div>
-              <h4 className="text-sm font-medium text-gray-900">{alert.title}</h4>
+              <h4 className="text-sm font-medium text-gray-900 truncate">{alert.title}</h4>
               {alert.description && (
                 <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{alert.description}</p>
               )}

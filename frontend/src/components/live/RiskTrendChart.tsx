@@ -55,18 +55,35 @@ export function RiskTrendChart({ data, isLoading, isError }: RiskTrendChartProps
       {
         tooltip: {
           trigger: 'axis',
-          valueFormatter: (v: number) => `${(v * 100).toFixed(1)}%`,
+          confine: true,
+          axisPointer: { type: 'cross', label: { backgroundColor: '#6a7985' } },
+          formatter: (params: unknown) => {
+            const p = (params as Record<string, unknown>[])[0];
+            const idx = p.dataIndex as number;
+            const bucket = data[idx];
+            if (!bucket) return '';
+            const time = new Date(bucket.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            return `<div class="text-xs">
+              <div class="font-semibold text-gray-700 mb-0.5">${time}</div>
+              <div>Risk avg: <span class="font-semibold">${(bucket.risk_avg * 100).toFixed(1)}%</span></div>
+              <div class="text-gray-500">Assessments: ${bucket.count}</div>
+            </div>`;
+          },
         },
-        grid: { left: '3%', right: '4%', bottom: '3%', top: '8%', containLabel: true },
+        grid: { left: '3%', right: '4%', bottom: '3%', top: '15%', containLabel: true },
         xAxis: {
           type: 'category',
           data: times,
           axisLabel: { fontSize: 10, color: '#888' },
+          axisLine: { lineStyle: { color: '#ddd' } },
         },
         yAxis: {
           type: 'value',
           min: 0,
           max: 1,
+          name: 'Risk %',
+          nameLocation: 'end',
+          nameTextStyle: { fontSize: 10, color: '#aaa' },
           axisLabel: {
             fontSize: 10,
             color: '#888',
@@ -82,6 +99,13 @@ export function RiskTrendChart({ data, isLoading, isError }: RiskTrendChartProps
             symbol: 'circle',
             symbolSize: 6,
             lineStyle: { width: 2, color: '#3b82f6' },
+            markLine: {
+              symbol: 'none',
+              silent: true,
+              label: { show: false },
+              lineStyle: { color: '#eab308', width: 1, type: 'dashed' },
+              data: [{ yAxis: 0.5 }],
+            },
             areaStyle: {
               color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
                 { offset: 0, color: 'rgba(59,130,246,0.25)' },

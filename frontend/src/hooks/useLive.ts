@@ -59,7 +59,7 @@ export function useLiveTalkers(window = '5m', limit = 20) {
     queryKey: ['live', 'talkers', window, limit],
     queryFn: () => getLiveTalkers(window, limit),
     refetchInterval: 10_000,
-    staleTime: 5_000,
+    staleTime: 7_000,
     retry: 2,
   });
 }
@@ -70,7 +70,7 @@ export function useLiveRiskStream(window = '5m') {
     queryKey: ['live', 'risk-stream', window],
     queryFn: () => getLiveRiskStream(window),
     refetchInterval: 5_000,
-    staleTime: 2_000,
+    staleTime: 3_000,
     retry: 2,
   });
 }

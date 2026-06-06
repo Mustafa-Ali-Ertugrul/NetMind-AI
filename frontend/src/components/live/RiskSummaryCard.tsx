@@ -12,13 +12,13 @@ echarts.use([GaugeChart, CanvasRenderer, TitleComponent]);
 function threatClass(level: string): string {
   switch (level) {
     case 'critical':
-      return 'bg-red-50 text-red-700 ring-1 ring-red-200';
+      return 'bg-red-50 text-red-700 border border-red-200';
     case 'high':
-      return 'bg-orange-50 text-orange-700 ring-1 ring-orange-200';
+      return 'bg-orange-50 text-orange-700 border border-orange-200';
     case 'medium':
-      return 'bg-amber-50 text-amber-700 ring-1 ring-amber-200';
+      return 'bg-amber-50 text-amber-700 border border-amber-200';
     default:
-      return 'bg-green-50 text-green-700 ring-1 ring-green-200';
+      return 'bg-green-50 text-green-700 border border-green-200';
   }
 }
 
@@ -73,7 +73,7 @@ export function RiskSummaryCard({ data, isLoading, isError }: RiskSummaryCardPro
             axisLabel: { distance: 14, fontSize: 10, color: '#666' },
             detail: {
               valueAnimation: true,
-              fontSize: 22,
+              fontSize: 24,
               fontWeight: 'bold',
               offsetCenter: [0, '35%'],
               formatter: '{value}',
