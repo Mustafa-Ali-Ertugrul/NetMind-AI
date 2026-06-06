@@ -43,8 +43,13 @@ class _FlowAccumulator:
         "dst_bytes",
         "syn_count",
         "rst_count",
+        "ack_count",
         "start_time",
         "end_time",
+        "_last_timestamp",
+        "_interval_mean",
+        "_interval_m2",
+        "_interval_count",
     )
 
     def __init__(self, packet: ParsedPacket) -> None:
@@ -59,10 +64,15 @@ class _FlowAccumulator:
         self.dst_bytes = 0
         self.syn_count = 0
         self.rst_count = 0
+        self.ack_count = 0
         self._update_flags(packet)
         ts = packet.timestamp or datetime.min
         self.start_time = ts
         self.end_time = ts
+        self._last_timestamp = ts
+        self._interval_mean = 0.0
+        self._interval_m2 = 0.0
+        self._interval_count = 0
 
     def add(self, packet: ParsedPacket) -> None:
         """Accumulate one more packet into this flow."""
@@ -79,6 +89,14 @@ class _FlowAccumulator:
                 self.start_time = ts
             if ts > self.end_time:
                 self.end_time = ts
+            if self._last_timestamp and self._last_timestamp != datetime.min:
+                interval_ms = (ts - self._last_timestamp).total_seconds() * 1000.0
+                self._interval_count += 1
+                delta = interval_ms - self._interval_mean
+                self._interval_mean += delta / self._interval_count
+                delta2 = interval_ms - self._interval_mean
+                self._interval_m2 += delta * delta2
+            self._last_timestamp = ts
         self._update_flags(packet)
 
     def _update_flags(self, packet: ParsedPacket) -> None:
@@ -91,6 +109,8 @@ class _FlowAccumulator:
                 self.syn_count += 1
             if bits & 0x004:
                 self.rst_count += 1
+            if bits & 0x010:
+                self.ack_count += 1
 
     @property
     def duration_ms(self) -> float:
@@ -106,11 +126,16 @@ class _FlowAccumulator:
         return False
 
     def to_flow_record(self) -> FlowRecord:
-        # Average time between consecutive packets in the flow
-        if self.packets_total > 1:
-            inter = self.duration_ms / (self.packets_total - 1)
+        if self._interval_count > 0:
+            inter_avg = self._interval_mean
+            inter_var = (
+                self._interval_m2 / (self._interval_count - 1) if self._interval_count > 1 else 0.0
+            )
         else:
-            inter = 0.0
+            inter_avg = (
+                self.duration_ms / (self.packets_total - 1) if self.packets_total > 1 else 0.0
+            )
+            inter_var = 0.0
         return FlowRecord(
             src_ip=self.src_ip,
             dst_ip=self.dst_ip,
@@ -126,7 +151,9 @@ class _FlowAccumulator:
             dst_bytes=self.dst_bytes,
             syn_count=self.syn_count,
             rst_count=self.rst_count,
-            inter_packet_interval_ms=round(inter, 4),
+            ack_count=self.ack_count,
+            inter_packet_interval_ms=round(inter_avg, 4),
+            inter_packet_interval_variance_ms=round(inter_var, 4),
         )
 
 

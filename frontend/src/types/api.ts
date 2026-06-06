@@ -48,11 +48,30 @@ export interface AiAssessment {
   generation_time_ms: number | null;
 }
 
+export interface OverallRisk {
+  score: number;
+  label: string | null;
+}
+
+export interface TopTalkerItem {
+  key: string;
+  packets: number;
+  bytes: number;
+}
+
+export interface TopTalkersResult {
+  src_ips: TopTalkerItem[];
+  dst_ips: TopTalkerItem[];
+  dst_ports: TopTalkerItem[];
+  protocols: TopTalkerItem[];
+}
+
 export interface AnalysisResultResponse {
   job: JobStatusResponse;
   pcap_id: string;
   alerts: AlertResponse[];
   ai_assessment: AiAssessment | null;
+  overall_risk: OverallRisk | null;
 }
 
 export type JobStatus =

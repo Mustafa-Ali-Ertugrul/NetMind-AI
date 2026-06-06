@@ -19,6 +19,7 @@ from backend.api.schemas import (
     AlertResponse,
     AnalysisResultResponse,
     JobStatusResponse,
+    OverallRiskResponse,
 )
 from backend.config import get_settings
 from backend.storage.models import AiAssessment, Alert, AnalysisJob, PcapFile
@@ -126,7 +127,34 @@ async def get_job_result(
         pcap_id=job.pcap_id,
         alerts=alert_responses,
         ai_assessment=assessment_dict,
+        overall_risk=OverallRiskResponse(
+            score=assessment.risk_score or 0,
+            label=assessment.risk_label,
+        )
+        if assessment
+        else None,
     )
+
+
+@router.get("/{job_id}/talkers")
+async def get_job_talkers(
+    job_id: UUID,
+    limit: int = Query(10, ge=1, le=100),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Return top talkers for a job's PCAP."""
+    from backend.analytics.aggregators.talkers import TopTalkerAggregator
+
+    job_res = await db.execute(select(AnalysisJob).where(AnalysisJob.id == job_id))
+    job = job_res.scalar_one_or_none()
+    if job is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job {job_id} not found",
+        )
+    aggregator = TopTalkerAggregator()
+    result = aggregator.aggregate(db, pcap_id=job.pcap_id, limit=limit)
+    return result.model_dump(mode="json")
 
 
 @router.get("/{job_id}/report")

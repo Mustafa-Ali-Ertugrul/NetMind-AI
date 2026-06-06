@@ -105,6 +105,13 @@ class AlertResponse(BaseModel):
     ai_corroborated: bool = False
 
 
+class OverallRiskResponse(BaseModel):
+    """Weighted overall risk score for a job."""
+
+    score: int = 0
+    label: str | None = None
+
+
 class AnalysisResultResponse(BaseModel):
     """Full result bundle: job + pcap + findings + AI assessment."""
 
@@ -112,3 +119,4 @@ class AnalysisResultResponse(BaseModel):
     pcap_id: UUID
     alerts: list[AlertResponse]
     ai_assessment: dict[str, Any] | None = None
+    overall_risk: OverallRiskResponse | None = None

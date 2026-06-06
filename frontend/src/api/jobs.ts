@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { JobStatusResponse, AnalysisResultResponse } from '@/types/api';
+import type { JobStatusResponse, AnalysisResultResponse, TopTalkersResult } from '@/types/api';
 
 /** Poll a single job's status. */
 export async function getJobStatus(jobId: string): Promise<JobStatusResponse> {
@@ -10,6 +10,14 @@ export async function getJobStatus(jobId: string): Promise<JobStatusResponse> {
 /** Get the full analysis result for a completed job. */
 export async function getJobResult(jobId: string): Promise<AnalysisResultResponse> {
   const { data } = await apiClient.get<AnalysisResultResponse>(`/jobs/${jobId}/result`);
+  return data;
+}
+
+/** Get top talkers for a job. */
+export async function getJobTalkers(jobId: string, limit = 10): Promise<TopTalkersResult> {
+  const { data } = await apiClient.get<TopTalkersResult>(`/jobs/${jobId}/talkers`, {
+    params: { limit },
+  });
   return data;
 }
 

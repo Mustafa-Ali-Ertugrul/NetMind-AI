@@ -25,6 +25,8 @@ class FlowRecord(BaseModel):
     syn_count: int = 0
     rst_count: int = 0
     inter_packet_interval_ms: float = 0.0  # avg time between packets in flow
+    inter_packet_interval_variance_ms: float = 0.0  # variance of inter-packet intervals
+    ack_count: int = 0
 
 
 class ConnectionProfile(BaseModel):

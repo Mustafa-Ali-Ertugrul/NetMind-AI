@@ -35,9 +35,7 @@ def _utcnow() -> datetime:
 class PcapFile(Base):
     __tablename__ = "pcap_files"
 
-    id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True), primary_key=True, default=uuid4
-    )
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
     filename: Mapped[str] = mapped_column(Text, nullable=False)
     original_name: Mapped[str] = mapped_column(Text, nullable=False)
     file_size: Mapped[int] = mapped_column(BigInteger, nullable=False)
@@ -52,35 +50,21 @@ class PcapFile(Base):
     duration_seconds: Mapped[float | None] = mapped_column(Float, nullable=True)
     packet_count: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     bytes_total: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-    start_time: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    end_time: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    uploaded_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=_utcnow
-    )
+    start_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    end_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     last_accessed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    expires_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    deleted_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    uploaded_by: Mapped[UUID | None] = mapped_column(
-        PG_UUID(as_uuid=True), nullable=True
-    )
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    uploaded_by: Mapped[UUID | None] = mapped_column(PG_UUID(as_uuid=True), nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     packets: Mapped[list["Packet"]] = relationship(
         back_populates="pcap", cascade="all, delete-orphan"
     )
-    flows: Mapped[list["Flow"]] = relationship(
-        back_populates="pcap", cascade="all, delete-orphan"
-    )
+    flows: Mapped[list["Flow"]] = relationship(back_populates="pcap", cascade="all, delete-orphan")
     dns_queries: Mapped[list["DnsQuery"]] = relationship(
         back_populates="pcap", cascade="all, delete-orphan"
     )
@@ -157,39 +141,32 @@ class Flow(Base):
     bytes_sent: Mapped[int] = mapped_column(BigInteger, default=0)
     bytes_recv: Mapped[int] = mapped_column(BigInteger, default=0)
     packets_count: Mapped[int] = mapped_column(Integer, default=0)
-    start_time: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    end_time: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    start_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    end_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     duration_ms: Mapped[float | None] = mapped_column(Float, nullable=True)
+    inter_packet_interval_ms: Mapped[float | None] = mapped_column(Float, nullable=True)
+    inter_packet_interval_variance_ms: Mapped[float | None] = mapped_column(Float, nullable=True)
+    ack_count: Mapped[int] = mapped_column(Integer, default=0)
     alert_count: Mapped[int] = mapped_column(Integer, default=0)
 
     pcap: Mapped["PcapFile"] = relationship(back_populates="flows")
 
     __table_args__ = (
         Index("idx_flows_pcap_id", "pcap_id"),
-        Index(
-            "idx_flows_5tuple", "src_ip", "dst_ip", "src_port", "dst_port", "protocol"
-        ),
+        Index("idx_flows_5tuple", "src_ip", "dst_ip", "src_port", "dst_port", "protocol"),
     )
 
 
 class DnsQuery(Base):
     __tablename__ = "dns_queries"
 
-    id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True), primary_key=True, default=uuid4
-    )
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
     pcap_id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True),
         ForeignKey("pcap_files.id", ondelete="CASCADE"),
         nullable=False,
     )
-    packet_time: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    packet_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     src_ip: Mapped[IPv4Address | None] = mapped_column(INET, nullable=True)
     dst_ip: Mapped[IPv4Address | None] = mapped_column(INET, nullable=True)
     transaction_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -211,17 +188,13 @@ class DnsQuery(Base):
 class HttpRequest(Base):
     __tablename__ = "http_requests"
 
-    id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True), primary_key=True, default=uuid4
-    )
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
     pcap_id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True),
         ForeignKey("pcap_files.id", ondelete="CASCADE"),
         nullable=False,
     )
-    packet_time: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    packet_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     src_ip: Mapped[IPv4Address | None] = mapped_column(INET, nullable=True)
     dst_ip: Mapped[IPv4Address | None] = mapped_column(INET, nullable=True)
     method: Mapped[str | None] = mapped_column(String(16), nullable=True)
@@ -246,9 +219,7 @@ class HttpRequest(Base):
 class Alert(Base):
     __tablename__ = "alerts"
 
-    id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True), primary_key=True, default=uuid4
-    )
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
     pcap_id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True),
         ForeignKey("pcap_files.id", ondelete="CASCADE"),
@@ -260,9 +231,7 @@ class Alert(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     evidence: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     rule_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    triggered_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=_utcnow
-    )
+    triggered_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     ai_corroborated: Mapped[bool] = mapped_column(default=False)
 
     pcap: Mapped["PcapFile"] = relationship(back_populates="alerts")
@@ -281,9 +250,7 @@ class Alert(Base):
 class AnalysisJob(Base):
     __tablename__ = "analysis_jobs"
 
-    id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True), primary_key=True, default=uuid4
-    )
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
     pcap_id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True),
         ForeignKey("pcap_files.id", ondelete="CASCADE"),
@@ -291,17 +258,11 @@ class AnalysisJob(Base):
     )
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="queued")
     worker_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    started_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    completed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     model_used: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=_utcnow
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     pcap: Mapped["PcapFile"] = relationship(back_populates="analysis_jobs")
 
@@ -319,9 +280,7 @@ class AnalysisJob(Base):
 class AiAssessment(Base):
     __tablename__ = "ai_assessments"
 
-    id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True), primary_key=True, default=uuid4
-    )
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
     job_id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True),
         ForeignKey("analysis_jobs.id", ondelete="CASCADE"),
@@ -343,9 +302,7 @@ class AiAssessment(Base):
     model_confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
     raw_response: Mapped[str | None] = mapped_column(Text, nullable=True)
     generation_time_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=_utcnow
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
     pcap: Mapped["PcapFile"] = relationship(back_populates="ai_assessments")
 

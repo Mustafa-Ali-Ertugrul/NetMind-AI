@@ -2,11 +2,14 @@ import { useParams, Link } from 'react-router-dom';
 import { useJobStatus } from '@/hooks/useJobStatus';
 import { useJobResult } from '@/hooks/useJobResult';
 import { useJobArtifacts } from '@/hooks/useJobArtifacts';
+import { useJobTalkers } from '@/hooks/useJobTalkers';
 import { getArtifactDownloadUrl } from '@/api/jobs';
 import { JobStatusBadge } from '@/components/JobStatusBadge';
 import { JobProgressTimeline } from '@/components/JobProgressTimeline';
 import { FindingTable } from '@/components/FindingTable';
 import { AIReportPanel } from '@/components/AIReportPanel';
+import { RiskGauge } from '@/components/RiskGauge';
+import { TopTalkersPanel } from '@/components/TopTalkersPanel';
 import { formatDate, formatBytes } from '@/lib/format';
 import { ArrowLeft, Loader2, AlertCircle, Download, FileText } from 'lucide-react';
 
@@ -15,6 +18,7 @@ export function JobDetailPage() {
   const status = useJobStatus(jobId ?? null);
   const result = useJobResult(jobId ?? null);
   const artifacts = useJobArtifacts(jobId ?? null);
+  const talkers = useJobTalkers(jobId ?? null);
 
   if (status.isLoading) {
     return (
@@ -110,10 +114,36 @@ export function JobDetailPage() {
             <FindingTable alerts={result.data.alerts} />
           </div>
 
-          {/* AI Assessment */}
+          {/* AI Assessment + Risk Gauge */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white border border-gray-200 rounded-xl p-5">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">AI Assessment</h3>
+              <AIReportPanel assessment={result.data.ai_assessment} />
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-5">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Overall Risk</h3>
+              <RiskGauge score={result.data.overall_risk?.score ?? null} />
+              {result.data.overall_risk?.label && (
+                <p className="text-center text-xs text-gray-500 mt-1">{result.data.overall_risk.label}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Top Talkers */}
           <div className="bg-white border border-gray-200 rounded-xl p-5">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">AI Assessment</h3>
-            <AIReportPanel assessment={result.data.ai_assessment} />
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Top Talkers</h3>
+            {talkers.isLoading && (
+              <div className="flex items-center gap-2 text-sm text-gray-500 justify-center py-8">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Loading top talkers…
+              </div>
+            )}
+            {talkers.isError && (
+              <p className="text-sm text-red-600 text-center py-4">{talkers.error?.message ?? 'Failed to load top talkers'}</p>
+            )}
+            {!talkers.isLoading && !talkers.isError && (
+              <TopTalkersPanel data={talkers.data ?? undefined} />
+            )}
           </div>
 
           {/* Artifacts */}
