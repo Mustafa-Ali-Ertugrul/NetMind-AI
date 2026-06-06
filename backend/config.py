@@ -40,9 +40,14 @@ class Settings(BaseSettings):
     upload_dir: Path = Field(default=Path("/var/lib/netmind/pcaps"))
     upload_max_size_mb: int = Field(default=100)
     upload_allowed_extensions: list[str] = Field(default_factory=lambda: [".pcap", ".pcapng"])
+
+    # Storage lifecycle
     storage_retention_days: int = Field(default=7)
     storage_cleanup_enabled: bool = Field(default=True)
-    storage_cleanup_schedule_seconds: int = Field(default=3600)
+    storage_cleanup_schedule_seconds: int = Field(default=3600)  # dev: 1h → 6h production
+    artifact_storage_path: Path = Field(default=Path("/var/lib/netmind/artifacts"))
+    disk_usage_threshold_pct: float = Field(default=85.0)
+    artifact_retention_hours: int = Field(default=168)  # 7 days
 
     celery_broker_url: str = Field(default="redis://localhost:6379/0")
     celery_result_backend: str = Field(default="redis://localhost:6379/1")

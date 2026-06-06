@@ -25,11 +25,11 @@ celery_app.conf.update(
     worker_prefetch_multiplier=1,
     broker_connection_retry_on_startup=True,
     beat_schedule={
-        "cleanup-expired-pcaps": {
-            "task": "cleanup_expired_pcaps",
+        "storage-lifecycle-cleanup": {
+            "task": "storage_lifecycle_cleanup",
             "schedule": settings.storage_cleanup_schedule_seconds,
             "args": (),
-        }
+        },
     },
 )
 

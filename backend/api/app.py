@@ -3,11 +3,17 @@
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
-from backend.api.routes import health, jobs, pcaps
+from backend.api.metrics import MetricsMiddleware, metrics_endpoint
+from backend.api.rate_limit import limiter
+from backend.api.routes import health, jobs, pcaps, storage
 from backend.config import get_settings
 from backend.storage.database import init_db
 
@@ -48,6 +54,12 @@ def create_app() -> FastAPI:
         openapi_url="/openapi.json" if settings.enable_docs else None,
     )
 
+    # ── Rate limiter ────────────────────────────────────────
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
+    app.add_middleware(SlowAPIMiddleware)  # type: ignore[arg-type]
+
+    # ── CORS ────────────────────────────────────────────────
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
@@ -56,9 +68,19 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    # ── Prometheus metrics ──────────────────────────────────
+    app.add_middleware(MetricsMiddleware)
+
+    # ── Routers ─────────────────────────────────────────────
     app.include_router(health.router)
     app.include_router(pcaps.router, prefix=settings.api_prefix)
     app.include_router(jobs.router, prefix=settings.api_prefix)
+    app.include_router(storage.router, prefix=settings.api_prefix)
+
+    # Prometheus /metrics endpoint (registered after routers)
+    @app.get("/metrics", include_in_schema=False)
+    async def metrics(request: Request) -> Any:
+        return await metrics_endpoint(request)
 
     return app
 

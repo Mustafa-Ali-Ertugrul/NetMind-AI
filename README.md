@@ -208,3 +208,16 @@ Sprint 6 will add:
 - Option B: aggregate packet/flow/dns summaries for the "browse traffic" feature
 
 See [MVP-AND-ROADMAP.md](./MVP-AND-ROADMAP.md) for the full plan.
+
+---
+
+## Development Tools & Models
+
+### CLIs Used
+- Codex
+- OpenCode
+
+### Models Used
+- MiniMax M3
+- DeepSeek 4 Flash
+- GPT-5.5

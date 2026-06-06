@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,11 +20,25 @@ from backend.api.schemas import (
     AnalysisResultResponse,
     JobStatusResponse,
 )
+from backend.config import get_settings
 from backend.storage.models import AiAssessment, Alert, AnalysisJob, PcapFile
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
+
+
+@router.get("", response_model=list[JobStatusResponse])
+async def list_jobs(
+    limit: int = Query(50, ge=1, le=200),
+    db: AsyncSession = Depends(get_db_session),
+) -> list[JobStatusResponse]:
+    """List recent analysis jobs ordered by creation time."""
+    result = await db.execute(
+        select(AnalysisJob).order_by(AnalysisJob.created_at.desc()).limit(limit)
+    )
+    jobs = result.scalars().all()
+    return [JobStatusResponse.model_validate(j) for j in jobs]
 
 
 @router.get("/{job_id}", response_model=JobStatusResponse)
@@ -152,3 +166,51 @@ async def list_jobs_for_pcap(
     )
     jobs = jobs_res.scalars().all()
     return [JobStatusResponse.model_validate(j) for j in jobs]
+
+
+@router.get("/{job_id}/artifacts")
+async def list_job_artifacts(
+    job_id: UUID,
+    db: AsyncSession = Depends(get_db_session),
+) -> list[dict]:
+    """List downloadable artifact files for a given job.
+
+    Returns artifact metadata (filename, type, size, created_at).
+    Actual file download is handled by the dedicated artifact download handler.
+    """
+    from backend.storage.service import StorageService
+    from backend.storage.schemas import ArtifactInfo
+
+    svc = StorageService(db=db, settings=get_settings())
+    artifacts = await svc.list_artifacts(job_id)
+    return [ArtifactInfo.model_validate(a).model_dump(mode="json") for a in artifacts]
+
+
+@router.get("/{job_id}/artifacts/{filename}")
+async def download_job_artifact(
+    job_id: UUID,
+    filename: str,
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Download a specific artifact file for a job."""
+    from fastapi.responses import FileResponse
+    from backend.storage.service import StorageService
+    from backend.storage.exceptions import ArtifactNotFoundError
+
+    svc = StorageService(db=db, settings=get_settings())
+    try:
+        target = await svc.get_artifact_path(job_id, filename)
+    except ArtifactNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
+
+    # Infer media type
+    media_type = "application/octet-stream"
+    if filename.endswith(".json"):
+        media_type = "application/json"
+    elif filename.endswith(".log"):
+        media_type = "text/plain"
+
+    return FileResponse(path=target, filename=filename, media_type=media_type)

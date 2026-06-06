@@ -63,12 +63,12 @@ class TestCeleryApp:
     def test_cleanup_task_registered(self):
         import backend.worker.tasks.storage_cleanup  # noqa: F401
 
-        assert "cleanup_expired_pcaps" in celery_app.tasks
+        assert "storage_lifecycle_cleanup" in celery_app.tasks
 
     def test_cleanup_beat_schedule_registered(self):
         schedule = celery_app.conf.beat_schedule
-        assert "cleanup-expired-pcaps" in schedule
-        assert schedule["cleanup-expired-pcaps"]["task"] == "cleanup_expired_pcaps"
+        assert "storage-lifecycle-cleanup" in schedule
+        assert schedule["storage-lifecycle-cleanup"]["task"] == "storage_lifecycle_cleanup"
 
 
 # ---------------------------------------------------------------------------

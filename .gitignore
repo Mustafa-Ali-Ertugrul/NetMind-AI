@@ -36,3 +36,9 @@ data/
 *.pcap
 *.pcapng
 uploads/
+
+# Local dev profiles
+codex-profiles/
+
+# Test artifacts
+frontend/test-results/

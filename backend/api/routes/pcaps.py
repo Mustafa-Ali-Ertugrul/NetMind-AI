@@ -1,15 +1,18 @@
 """PCAP upload and management endpoints (Phase 5).
 
 Upload flow:
-    1. Validate extension + size
+    1. Validate extension + size + magic bytes
     2. SHA-256 dedup: if a PcapFile with this hash already exists,
        return 200 with deduplicated=True and the existing job_id
     3. Persist the file to disk under upload_dir/{storage_key}
     4. Insert PcapFile row (status="uploaded")
     5. Insert AnalysisJob row (status="queued")
     6. Enqueue Celery task analyze_pcap_task.delay(job_id)
-    7. Return 201 with pcap_id + job_id
+
+Rate limited to 10 requests/minute per IP.
 """
+
+from backend.api.rate_limit import limiter
 
 import hashlib
 import logging
@@ -17,7 +20,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -41,7 +44,9 @@ router = APIRouter(prefix="/pcaps", tags=["pcaps"])
     response_model=UploadResponse,
     status_code=status.HTTP_201_CREATED,
 )
+@limiter.limit("10/minute")
 async def upload_pcap(
+    request: Request,
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db_session),
 ) -> UploadResponse:
@@ -63,6 +68,24 @@ async def upload_pcap(
         )
 
     content = await file.read()
+
+    # Magic bytes validation: PCAP = d4c3b2a1 / a1b2c3d4, PCAPNG = 0a0d0d0a
+    if len(content) >= 4:
+        header = content[:4]
+        pcap_magic = any(
+            header == m for m in [b"\xd4\xc3\xb2\xa1", b"\xa1\xb2\xc3\xd4", b"\x0a\x0d\x0d\x0a"]
+        )
+        if not pcap_magic:
+            raise HTTPException(
+                status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                detail="File does not appear to be a valid PCAP/PCAPNG (invalid magic bytes)",
+            )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="File is too small to be a valid PCAP/PCAPNG",
+        )
+
     if len(content) > settings.upload_max_size_bytes:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
@@ -263,3 +286,15 @@ async def get_pcap(
         error_message=pcap.error_message,
         analysis_jobs=[JobSummary.model_validate(j) for j in jobs],
     )
+
+
+@router.delete("/{pcap_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_pcap(
+    pcap_id: UUID,
+    db: AsyncSession = Depends(get_db_session),
+) -> None:
+    """Soft-delete a PCAP record and remove its file from disk."""
+    from backend.storage.service import StorageService
+
+    svc = StorageService(db=db, settings=get_settings())
+    await svc.delete_pcap(pcap_id)

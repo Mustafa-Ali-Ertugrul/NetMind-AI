@@ -1,0 +1,26 @@
+# Keep the builder stage image lean
+node_modules/
+dist/
+.git/
+.gitignore
+*.md
+.env
+.env.local
+.env.*.local
+
+# Tests (not needed in the build)
+tests/
+coverage/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
