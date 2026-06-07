@@ -108,7 +108,7 @@ AI Assessor ──[SecurityReport]──▶ Storage + Frontend API
 
 **Stage 3: Rule Engine** (`features` → `findings`)
 - Reads: `AggregatedFeatures`
-- Evaluates: default production MVP rules via `RuleRegistry` (`DNSTunnelingRule`, `HTTPAnomalyRule`, `TopTalkerRule`)
+- Evaluates: all built-in showcase rules via `RuleRegistry`
 - Writes to DB: `alerts`
 - Writes to pipeline: `list[Finding]`, `OverallRiskScore`
 
@@ -1452,7 +1452,7 @@ Output: ParsedProtocols {
           smtp_messages: [],
           parse_duration_ms: 4500
         }
-DB:     packets, flows, dns_queries, http_requests populated
+DB:     no packet rows; derived flow/protocol results are persisted by later stages
 ```
 
 **Step 2: Feature Extractor**
@@ -1494,7 +1494,7 @@ Rule 2: DNSTunnelingRule
   → raw_score: 54
   → Finding: { severity: MEDIUM, confidence: MEDIUM, risk_score: 20, ... }
 
-Rule 3-5: No triggers → None returned
+Other built-in rules: no triggers → no findings returned
 
 OverallRiskScore:
   max_score: 58

@@ -46,7 +46,7 @@ def _make_empty_features() -> AggregatedFeatures:
 
 
 def _make_attack_features() -> AggregatedFeatures:
-    """Build a feature set that triggers the default MVP rules."""
+    """Build a feature set that triggers the full built-in demo rule set."""
     now = datetime.now(timezone.utc)
     pcap_id = uuid4()
 
@@ -145,19 +145,19 @@ class TestRuleEngine:
         assert overall.severity_label == RiskLabel.INFORMATIONAL
         assert overall.failed_rules == []
 
-    def test_default_mvp_rules_fire_on_attack(self):
-        """Attack features should trigger the DNS and flow-volume MVP rules."""
+    def test_default_rules_fire_on_attack(self):
+        """Attack features should trigger multiple built-in showcase rules."""
         engine = RuleEngine()
         features = _make_attack_features()
         findings, overall = engine.analyze(features)
-        assert len(findings) >= 2
+        assert len(findings) >= 5
 
         rule_ids = {f.rule_id for f in findings}
+        assert "NET-001" in rule_ids  # PortScan
         assert "NET-002" in rule_ids  # DNSTunneling
+        assert "NET-003" in rule_ids  # FTPBruteForce
+        assert "NET-004" in rule_ids  # SMTPAbuse
         assert "NET-008" in rule_ids  # TopTalker
-        assert "NET-001" not in rule_ids  # PortScan is experimental/non-default
-        assert "NET-003" not in rule_ids  # FTPBruteForce is experimental/non-default
-        assert "NET-004" not in rule_ids  # SMTPAbuse is experimental/non-default
 
     def test_overall_risk_scored(self):
         """OverallRiskScore should be populated with attack features."""
@@ -235,4 +235,4 @@ class TestRuleEngine:
         """RuleEngine exposes its registry."""
         engine = RuleEngine()
         assert engine.registry is not None
-        assert len(engine.registry) == 3
+        assert len(engine.registry) == 11

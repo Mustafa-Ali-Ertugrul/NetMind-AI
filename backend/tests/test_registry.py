@@ -2,7 +2,19 @@
 
 from backend.rule_engine import RuleEngine
 from backend.rule_engine.registry import RuleRegistry
-from backend.rule_engine.rules import DNSTunnelingRule, HTTPAnomalyRule, PortScanRule, TopTalkerRule
+from backend.rule_engine.rules import (
+    BeaconingRule,
+    CleartextCredentialsRule,
+    DNSTunnelingRule,
+    FTPBruteForceRule,
+    HTTPAnomalyRule,
+    ICMPFloodRule,
+    LargeOutboundRule,
+    PortScanRule,
+    SMTPAbuseRule,
+    SYNFloodRule,
+    TopTalkerRule,
+)
 
 
 class TestRuleRegistry:
@@ -56,15 +68,31 @@ class TestRuleRegistry:
 
     def test_default_engine_registry(self):
         engine = RuleEngine()
-        assert len(engine.registry) == 3
+        assert len(engine.registry) == 11
         ids = {r.rule_id for r in engine.registry.get_all()}
         assert ids == {
+            "NET-001",
             "NET-002",
+            "NET-003",
+            "NET-004",
+            "NET-005",
             "NET-006",
+            "NET-007",
             "NET-008",
+            "NET-009",
+            "NET-010",
+            "NET-011",
         }
         assert [type(r) for r in engine.registry.get_all()] == [
+            PortScanRule,
             DNSTunnelingRule,
+            FTPBruteForceRule,
+            SMTPAbuseRule,
+            SYNFloodRule,
+            ICMPFloodRule,
             HTTPAnomalyRule,
             TopTalkerRule,
+            BeaconingRule,
+            CleartextCredentialsRule,
+            LargeOutboundRule,
         ]

@@ -150,9 +150,9 @@ flowchart LR
 - **FastAPI** exposes health, PCAP, jobs, storage, and live monitoring APIs.
 - **Celery + Redis** handles asynchronous PCAP analysis.
 - **PostgreSQL** stores PCAP metadata, jobs, alerts, assessments, aggregated flows, protocol summaries, live alerts, and rule stats.
-- **MinIO** stores original PCAP/PCAPNG objects through the S3-compatible object-store backend.
+- **Docker volumes** store original PCAP/PCAPNG objects by default; optional MinIO/S3 mode is available for object-storage demos.
 - **tshark** powers packet parsing through streaming JSON output.
-- **Rule engine** defaults to the production MVP rule set: DNS tunneling, HTTP anomaly, and top talker flow-volume anomalies.
+- **Rule engine** runs the full built-in showcase set: port scan, DNS tunneling, FTP/SMTP abuse, SYN/ICMP flood, HTTP anomaly, top talker, beaconing, cleartext credentials, and large outbound transfer.
 
 ### Frontend
 
@@ -209,7 +209,7 @@ POSTGRES_PASSWORD=netmind
 POSTGRES_PORT=5432
 CORS_ORIGINS=*
 UPLOAD_MAX_SIZE_MB=100
-OBJECT_STORE_BACKEND=s3
+OBJECT_STORE_BACKEND=local
 S3_ENDPOINT_URL=minio:9000
 S3_BUCKET=netmind-pcaps
 MINIO_ROOT_USER=netmind
@@ -231,8 +231,13 @@ This starts:
 | `api` | `http://localhost:8000` | FastAPI backend |
 | `db` | `localhost:5432` | PostgreSQL |
 | `redis` | `localhost:6379` | Celery broker/result backend |
-| `minio` | `localhost:9000`, console `localhost:9001` | S3-compatible PCAP object storage |
 | `worker` | internal | Async PCAP analysis worker |
+
+Optional MinIO object storage can be started when you want to demonstrate S3-compatible storage instead of the default Docker volume:
+
+```bash
+OBJECT_STORE_BACKEND=s3 docker compose --profile object-storage up --build
+```
 
 ### 4. Verify the API
 
@@ -462,7 +467,7 @@ Sources for positioning:
 - Full-stack product experience instead of a backend-only analyzer.
 - Live observability plus offline PCAP analysis.
 - Demo-ready attack scenarios for presentations and training.
-- Docker Compose setup with PostgreSQL, Redis, MinIO, API, worker, and frontend.
+- Docker Compose setup with PostgreSQL, Redis, API, worker, frontend, and optional MinIO.
 - Rule modules are readable and extensible.
 - Local AI assessment path avoids depending on a hosted LLM by default.
 

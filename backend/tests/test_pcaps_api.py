@@ -28,13 +28,13 @@ async def test_upload_rejects_bad_extension(client: AsyncClient, mock_db: AsyncM
 
 @pytest.mark.asyncio
 async def test_upload_rejects_no_filename(client: AsyncClient, mock_db: AsyncMock) -> None:
-    """POST /pcaps without filename returns 400."""
+    """POST /pcaps without filename is rejected by FastAPI multipart validation."""
     resp = await client.post(
         "/api/v1/pcaps",
         files={"file": ("", b"dummy content", "application/octet-stream")},
     )
-    assert resp.status_code == 400
-    assert "filename" in resp.json()["detail"].lower()
+    assert resp.status_code == 422
+    assert "file" in str(resp.json()["detail"]).lower()
 
 
 @pytest.mark.asyncio

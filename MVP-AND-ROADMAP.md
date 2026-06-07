@@ -7,11 +7,14 @@
 2. **Upload** one PCAP/PCAPNG file at a time, up to 100MB
 3. **Parse** protocols needed for MVP analysis: HTTP, DNS, TCP, UDP
 4. **Extract** metadata: aggregated flows, top talkers, protocol distribution, timeline
-5. **Store** PCAP objects in MinIO and derived results in PostgreSQL with TimescaleDB
-6. **Rule engine** with 3 default production MVP rules:
+5. **Store** PCAP objects on a Docker volume by default and derived results in PostgreSQL
+6. **Rule engine** with a broad showcase set:
+   - Port scan detection
    - DNS tunneling detection
+   - FTP brute force and SMTP abuse
+   - SYN/ICMP flood detection
    - HTTP anomaly detection
-   - Top talker flow-volume anomaly detection
+   - Top talker, beaconing, cleartext credentials, and large outbound transfer
 7. **AI assessment** via Ollama using default `llama3.2` model, basic prompt template
 8. **Dashboard**:
    - Upload zone with progress
@@ -20,7 +23,7 @@
    - Top talkers bar chart
    - Alert table with severity coloring
    - AI report card (executive summary, findings, recommendations)
-9. **Docker Compose** full stack: PostgreSQL, Redis, MinIO, Ollama, API, Frontend, Worker
+9. **Docker Compose** full stack: PostgreSQL, Redis, Ollama, API, Frontend, Worker, optional MinIO
 10. **Async analysis** via Celery with worker autoscale and real-time progress streaming
 
 ### Excluded from MVP
@@ -44,7 +47,7 @@
 ### Phase 2: Security Hardening (Weeks 4-6)
 - OAuth2 / username-password authentication
 - Role-based access (Admin, Analyst, Viewer)
-- PCAP file encryption at rest in MinIO
+- Optional MinIO/S3 storage hardening and PCAP encryption at rest
 - API rate limiting
 - Input sanitization and upload validation hardening
 - Activity audit log
@@ -73,6 +76,7 @@
 ### Phase 6: Scalability & Integration (Weeks 17-20)
 - Live packet capture from network interfaces (libpcap integration)
 - Clustered workers with Celery + RabbitMQ
+- TimescaleDB hypertables for long-retention/high-volume flow ingest
 - Threat intelligence feed integration (AbuseIPDB, AlienVault OTX)
 - SIEM export (CEF, LEEF, Syslog)
 - REST API versioning (v2 for bulk operations)

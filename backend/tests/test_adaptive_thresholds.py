@@ -57,10 +57,12 @@ class TestAdaptiveThresholdTracker:
         for _ in range(7):
             tracker.record("beaconing", 0.80)
             tracker.record("port_scan", 0.20)
+        tracker.record("port_scan", 0.18)
+        tracker.record("port_scan", 0.22)
         # beaconing raw 0.10 should be suppressed (below its baseline)
         assert tracker.adapt("beaconing", 0.10) < 0.10
-        # port_scan raw 0.10 should be boosted (above its baseline)
-        assert tracker.adapt("port_scan", 0.10) > 0.10
+        # port_scan has its own lower baseline, so a high relative score is boosted
+        assert tracker.adapt("port_scan", 0.40) > 0.40
 
     def test_rolling_window_evicts_old(self):
         tracker = AdaptiveThresholdTracker(min_samples=5, window_size=5)
@@ -75,7 +77,7 @@ class TestAdaptiveThresholdTracker:
         assert tracker.adapt("beaconing", 0.50) < 0.50
 
     def test_disable_enable_rule(self):
-        tracker = AdaptiveThresholdTracker()
+        tracker = AdaptiveThresholdTracker(min_samples=1)
         tracker.record("beaconing", 0.50)
         tracker.disable_rule("beaconing")
         assert tracker.adapt("beaconing", 0.90) == pytest.approx(0.90)
@@ -89,11 +91,11 @@ class TestAdaptiveThresholdTracker:
         tracker.record("beaconing", 0.50)
         stats = tracker.get_all_stats()
         assert "beaconing" in stats
-        assert stats["beaconing"]["n"] == 1
-        assert stats["beaconing"]["mean"] == pytest.approx(0.50)
+        assert stats["beaconing"].sample_count == 1
+        assert stats["beaconing"].mean == pytest.approx(0.50)
 
     def test_reset_clears_state(self):
-        tracker = AdaptiveThresholdTracker(min_samples=0)
+        tracker = AdaptiveThresholdTracker(min_samples=1)
         tracker.record("beaconing", 0.50)
         tracker.reset()
         assert tracker.adapt("beaconing", 0.50) == pytest.approx(0.50)

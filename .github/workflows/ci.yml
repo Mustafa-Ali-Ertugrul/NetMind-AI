@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
   pull_request:
-    branches: [main]
+    branches: [main, master]
 
 env:
   PYTHON_VERSION: "3.11"
@@ -61,13 +61,12 @@ jobs:
         run: mypy backend/
         continue-on-error: true
 
-      - name: Test with pytest & coverage
+      - name: Test with pytest
         working-directory: ./backend
         env:
           DATABASE_URL: postgresql+asyncpg://netmind:netmind@localhost:5432/netmind_test
           REDIS_URL: redis://localhost:6379/0
-        run: pytest --cov=backend --cov-report=term-missing
-        continue-on-error: true
+        run: pytest tests
 
   frontend:
     name: Frontend lint & build
@@ -94,3 +93,15 @@ jobs:
       - name: Build
         working-directory: ./frontend
         run: npm run build
+
+  compose:
+    name: Docker Compose config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate default Compose config
+        run: docker compose config --quiet
+
+      - name: Validate MinIO profile Compose config
+        run: docker compose --profile object-storage config --quiet

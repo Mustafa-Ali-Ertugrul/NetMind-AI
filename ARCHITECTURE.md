@@ -9,18 +9,18 @@ NetMind AI follows a modular, event-driven architecture optimized for async netw
 - **Ingestion Service**: PCAP/PCAPNG uploads, validation, object storage, queueing
 - **Parsing Service**: tshark wrapper for multi-protocol dissection (HTTP, HTTPS, DNS, FTP, SMTP, TCP, UDP, ICMP)
 - **Analysis Engine**: Metadata extraction, flow aggregation, statistical summaries
-- **Rule Engine**: Production MVP detection for DNS tunneling, HTTP anomalies, and top talker flow-volume anomalies
+- **Rule Engine**: Broad built-in detection set for portfolio demos and analyst workflows
 - **AI/LLM Assessor**: Local Ollama LLM for natural language security assessments
 - **API Server**: FastAPI REST API + WebSocket for real-time job progress
 - **Frontend Dashboard**: React SPA with interactive visualizations
-- **Database**: PostgreSQL 16 + TimescaleDB (time-series optimization for aggregated flow data)
-- **Object Storage**: MinIO (S3-compatible) for PCAP originals
+- **Database**: PostgreSQL 16; TimescaleDB remains an optional scale path for high-volume flow retention
+- **Object Storage**: Docker volume by default, optional MinIO/S3-compatible backend for PCAP originals
 - **Task Queue**: Redis + Celery for distributed async analysis
 
 ### Communication Patterns
 - API Server -> Celery -> Workers via Redis broker
-- Workers -> PostgreSQL (results persistence, TimescaleDB hypertables)
-- Workers -> MinIO (read PCAP originals)
+- Workers -> PostgreSQL (results persistence, indexed flow/query tables)
+- Workers -> Docker volume or MinIO (read PCAP originals)
 - Frontend -> API Server (REST & WebSocket)
 - AI Worker -> Ollama (HTTP REST /api/generate)
 
@@ -29,9 +29,9 @@ NetMind AI follows a modular, event-driven architecture optimized for async netw
 |---|---|---|
 | Backend API | Python 3.11 + FastAPI | Async-native, OpenAPI auto-generation, excellent ecosystem |
 | Task Workers | Celery + Redis | Mature, proven, supports retries + dead letter queues |
-| Database | PostgreSQL 16 + TimescaleDB | Hypertables optimize time-series flow data; standard SQL |
+| Database | PostgreSQL 16 + optional TimescaleDB | Standard SQL is enough for MVP; hypertables help for long retention/high flow volume |
 | Cache/Queue | Redis 7 | Fast, proven, Celery broker, also cache layer |
-| Object Storage | MinIO | S3-compatible, Docker-native, lightweight |
+| Object Storage | Docker volume; optional MinIO | Local volume keeps MVP simple; MinIO demonstrates S3-compatible growth path |
 | LLM Runtime | Ollama | Local model hosting, simple HTTP API, no cloud dependency |
 | Frontend | React 18 + TS + Vite | Performance, type safety, large ecosystem |
 | Charts | Apache ECharts + Recharts | Network graphs, timelines, general statistics |
@@ -69,7 +69,8 @@ NetMind AI follows a modular, event-driven architecture optimized for async netw
 +-----+----+   +----------+   +----------------+
       |
 +-----+-----+
-|   MinIO   |   PCAP originals stored here
+| Volume / |
+|  MinIO   |   PCAP originals stored here
 +-----------+
 ```
 
@@ -165,7 +166,7 @@ netmind-ai/
 ```
 Phase 0: Infrastructure
   - docker-compose, networking, volumes
-  - PostgreSQL, Redis, MinIO, Ollama containers
+  - PostgreSQL, Redis, Ollama containers; optional MinIO profile
                      |
                      v
 Phase 1: storage-layer
@@ -173,11 +174,11 @@ Phase 1: storage-layer
                      |
                      v
 Phase 2: pcap-ingestor
-  - Upload endpoint, validation, S3 storage
+  - Upload endpoint, validation, local object storage with optional S3 backend
                      |
                      v
 Phase 3: protocol-parser
-  - tshark streaming wrapper, packet insert
+  - tshark streaming wrapper, in-memory packet parsing
                      |
                      v
 Phase 4: feature-extractor
@@ -220,7 +221,7 @@ Phase 8: observability
 ## 4. Database Schema
 
 ### Design Principles
-- Use **TimescaleDB hypertables** for high-cardinality time-series data (aggregated flows)
+- Use standard PostgreSQL indexes for MVP flow queries; add **TimescaleDB hypertables** when ingest volume or retention justifies it
 - Normalize protocol-specific tables (dns_queries, http_requests) for query efficiency
 - JSONB for flexible evidence and headers
 - UUIDv4 primary keys for distributed-future-proofing
@@ -238,7 +239,7 @@ Phase 8: observability
 - **audit_log**: Compliance tracking (Post-MVP)
 
 ### Full DDL
-See [db/schema.sql](./db/schema.sql) for complete PostgreSQL + TimescaleDB DDL with indexes and constraints.
+See [db/schema.sql](./db/schema.sql) for complete PostgreSQL DDL with indexes, constraints, and optional TimescaleDB flow optimizations.
 
 ---
 
@@ -443,7 +444,7 @@ Use this workflow when beginning implementation of NetMind AI:
 ### Implementation Order (per priority table)
 3. **@build** (Phase 1-2: storage + ingest + parser)
    - Implement `db/schema.sql` migrations via Alembic
-   - Build `pcap_ingestor` with MinIO upload
+   - Build `pcap_ingestor` with local storage and optional MinIO/S3 backend
    - Build `protocol_parser` streaming tshark wrapper
    
 4. **@build** (Phase 3-4: extractor + API)
@@ -454,7 +455,7 @@ Use this workflow when beginning implementation of NetMind AI:
    - React SPA with upload, charts, tables
    
 6. **@build** (Phase 6-7: intelligence layers)
-   - Rule engine with the 3-rule production MVP default set
+   - Rule engine with the full built-in showcase rule set
    - AI assessor with Ollama integration
 
 ### Quality Gates
