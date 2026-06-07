@@ -149,9 +149,10 @@ flowchart LR
 
 - **FastAPI** exposes health, PCAP, jobs, storage, and live monitoring APIs.
 - **Celery + Redis** handles asynchronous PCAP analysis.
-- **PostgreSQL** stores PCAP metadata, jobs, alerts, assessments, flows, packets, live alerts, and rule stats.
+- **PostgreSQL** stores PCAP metadata, jobs, alerts, assessments, aggregated flows, protocol summaries, live alerts, and rule stats.
+- **MinIO** stores original PCAP/PCAPNG objects through the S3-compatible object-store backend.
 - **tshark** powers packet parsing through streaming JSON output.
-- **Rule engine** detects behaviors such as port scans, DNS tunneling, FTP brute force, SMTP abuse, HTTP anomalies, ICMP floods, large outbound transfer, beaconing, cleartext credentials, SYN flood, and top talker anomalies.
+- **Rule engine** defaults to the production MVP rule set: DNS tunneling, HTTP anomaly, and top talker flow-volume anomalies.
 
 ### Frontend
 
@@ -208,6 +209,12 @@ POSTGRES_PASSWORD=netmind
 POSTGRES_PORT=5432
 CORS_ORIGINS=*
 UPLOAD_MAX_SIZE_MB=100
+OBJECT_STORE_BACKEND=s3
+S3_ENDPOINT_URL=minio:9000
+S3_BUCKET=netmind-pcaps
+MINIO_ROOT_USER=netmind
+MINIO_ROOT_PASSWORD=netmind-secret
+NETMIND_AI_CACHE_ENABLED=true
 ```
 
 ### 3. Start the full stack
@@ -224,6 +231,7 @@ This starts:
 | `api` | `http://localhost:8000` | FastAPI backend |
 | `db` | `localhost:5432` | PostgreSQL |
 | `redis` | `localhost:6379` | Celery broker/result backend |
+| `minio` | `localhost:9000`, console `localhost:9001` | S3-compatible PCAP object storage |
 | `worker` | internal | Async PCAP analysis worker |
 
 ### 4. Verify the API
@@ -346,7 +354,13 @@ uvicorn backend.main:app --reload
 Start the worker in another terminal:
 
 ```bash
-celery -A backend.worker worker --loglevel=INFO --pool=solo
+celery -A backend.worker worker --loglevel=INFO --pool=prefork --autoscale=10,2
+```
+
+For Docker Compose worker scaling, run:
+
+```bash
+docker compose up --build --scale worker=3
 ```
 
 ### Frontend
@@ -448,7 +462,7 @@ Sources for positioning:
 - Full-stack product experience instead of a backend-only analyzer.
 - Live observability plus offline PCAP analysis.
 - Demo-ready attack scenarios for presentations and training.
-- Docker Compose setup with PostgreSQL, Redis, API, worker, and frontend.
+- Docker Compose setup with PostgreSQL, Redis, MinIO, API, worker, and frontend.
 - Rule modules are readable and extensible.
 - Local AI assessment path avoids depending on a hosted LLM by default.
 

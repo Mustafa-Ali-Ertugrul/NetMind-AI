@@ -9,11 +9,11 @@ NetMind AI follows a modular, event-driven architecture optimized for async netw
 - **Ingestion Service**: PCAP/PCAPNG uploads, validation, object storage, queueing
 - **Parsing Service**: tshark wrapper for multi-protocol dissection (HTTP, HTTPS, DNS, FTP, SMTP, TCP, UDP, ICMP)
 - **Analysis Engine**: Metadata extraction, flow aggregation, statistical summaries
-- **Rule Engine**: Signature-based detection (cleartext credentials, suspicious ports, known-bad IoCs)
+- **Rule Engine**: Production MVP detection for DNS tunneling, HTTP anomalies, and top talker flow-volume anomalies
 - **AI/LLM Assessor**: Local Ollama LLM for natural language security assessments
 - **API Server**: FastAPI REST API + WebSocket for real-time job progress
 - **Frontend Dashboard**: React SPA with interactive visualizations
-- **Database**: PostgreSQL 16 + TimescaleDB (time-series optimization for packet data)
+- **Database**: PostgreSQL 16 + TimescaleDB (time-series optimization for aggregated flow data)
 - **Object Storage**: MinIO (S3-compatible) for PCAP originals
 - **Task Queue**: Redis + Celery for distributed async analysis
 
@@ -29,7 +29,7 @@ NetMind AI follows a modular, event-driven architecture optimized for async netw
 |---|---|---|
 | Backend API | Python 3.11 + FastAPI | Async-native, OpenAPI auto-generation, excellent ecosystem |
 | Task Workers | Celery + Redis | Mature, proven, supports retries + dead letter queues |
-| Database | PostgreSQL 16 + TimescaleDB | Hypertables optimize time-series packet data; standard SQL |
+| Database | PostgreSQL 16 + TimescaleDB | Hypertables optimize time-series flow data; standard SQL |
 | Cache/Queue | Redis 7 | Fast, proven, Celery broker, also cache layer |
 | Object Storage | MinIO | S3-compatible, Docker-native, lightweight |
 | LLM Runtime | Ollama | Local model hosting, simple HTTP API, no cloud dependency |
@@ -220,7 +220,7 @@ Phase 8: observability
 ## 4. Database Schema
 
 ### Design Principles
-- Use **TimescaleDB hypertables** for high-cardinality time-series data (packets, flows)
+- Use **TimescaleDB hypertables** for high-cardinality time-series data (aggregated flows)
 - Normalize protocol-specific tables (dns_queries, http_requests) for query efficiency
 - JSONB for flexible evidence and headers
 - UUIDv4 primary keys for distributed-future-proofing
@@ -228,12 +228,9 @@ Phase 8: observability
 
 ### Core Tables
 - **pcap_files**: File metadata, status, hashes, storage keys
-- **packets**: Individual packet records (hypertable on time)
 - **flows**: Aggregated 5-tuple flows (hypertable on time)
 - **dns_queries**: DNS transaction details with suspicion flag
 - **http_requests**: HTTP request/response metadata
-- **ftp_sessions**: FTP control channel and credentials
-- **smtp_messages**: SMTP envelope and headers
 - **alerts**: Security findings with severity and category
 - **analysis_jobs**: Async job progress tracking
 - **ai_assessments**: LLM-generated structured reports
@@ -257,7 +254,6 @@ See [db/schema.sql](./db/schema.sql) for complete PostgreSQL + TimescaleDB DDL w
 | DELETE | /api/v1/pcaps/{id} | Delete file and all derived data |
 | POST | /api/v1/pcaps/{id}/analyze | Trigger async analysis pipeline |
 | GET | /api/v1/pcaps/{id}/analysis | Get aggregated analysis results |
-| GET | /api/v1/pcaps/{id}/packets | Browse packets (paginated + filters) |
 | GET | /api/v1/pcaps/{id}/flows | Flow summary with top talkers |
 | GET | /api/v1/pcaps/{id}/dns | DNS query list |
 | GET | /api/v1/pcaps/{id}/http | HTTP request list |
@@ -394,7 +390,7 @@ OUTPUT JSON SCHEMA:
 - **Charts**: Apache ECharts (network graphs, timelines) + Recharts (bar/pie)
 - **WebSocket**: Custom hook `useAnalysisProgress`
 - **Upload**: `react-dropzone` with chunked upload for large files
-- **Virtualization**: `react-window` for packet tables (1M+ rows)
+- **Virtualization**: Efficient lists for findings, jobs, and aggregated flow views
 
 ### Component Hierarchy
 ```
@@ -415,7 +411,6 @@ App
         |   +-- AlertList
         |   +-- DNSQueryTable
         |   +-- HTTPRequestTable
-        |   +-- PacketBrowser (virtualized)
         |   +-- AIReportPanel
         +-- Settings
 +-- ToastProvider (real-time feedback)
@@ -430,11 +425,10 @@ App
   - `theme`: Light / dark mode
 
 ### Performance Considerations
-- Packet browser uses `react-window` virtualized list
 - Charts lazy-load when entering viewport
 - Large uploads chunked into 1MB pieces, resumable
 - AI report streamed character-by-character for perceived speed
-- Debounced filtering on packet tables to avoid excessive API calls
+- Debounced filtering on large result tables to avoid excessive API calls
 
 ---
 
@@ -460,7 +454,7 @@ Use this workflow when beginning implementation of NetMind AI:
    - React SPA with upload, charts, tables
    
 6. **@build** (Phase 6-7: intelligence layers)
-   - Rule engine with 5 MVP rules
+   - Rule engine with the 3-rule production MVP default set
    - AI assessor with Ollama integration
 
 ### Quality Gates

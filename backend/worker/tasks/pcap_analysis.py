@@ -32,7 +32,6 @@ from backend.storage.alert_writer import write_alerts_from_findings
 from backend.storage.assessment_writer import write_ai_assessment
 from backend.storage.flow_writer import write_flows_from_features
 from backend.storage.object_store import get_object_store
-from backend.storage.packet_writer import write_packets
 from backend.storage.models import AnalysisJob, PcapFile
 from backend.worker import celery_app
 
@@ -90,7 +89,6 @@ def analyze_pcap_task(self, job_id: str) -> dict:
     summary: dict = {
         "job_id": job_id,
         "status": "failed",
-        "packets_persisted": 0,
         "flows_persisted": 0,
         "alerts_persisted": 0,
         "ai_assessment_persisted": False,
@@ -144,14 +142,6 @@ def analyze_pcap_task(self, job_id: str) -> dict:
                 pcap.end_time = max(p.timestamp for p in parsed.packets if p.timestamp)
                 if pcap.end_time and pcap.start_time:
                     pcap.duration_seconds = (pcap.end_time - pcap.start_time).total_seconds()
-            packets_written = write_packets(
-                db,
-                pcap_id=pcap.id,
-                parsed=parsed,
-                mode=settings.store_packets,
-                sample_limit=settings.store_packets_sample_limit,
-            )
-            summary["packets_persisted"] = packets_written
             db.commit()
 
             # ----------------------------------------------------------------

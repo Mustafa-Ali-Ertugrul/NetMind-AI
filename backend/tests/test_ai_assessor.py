@@ -13,7 +13,9 @@ Covers:
 from __future__ import annotations
 
 import json
+import sys
 from datetime import datetime
+from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
@@ -421,6 +423,115 @@ class TestAIAssessor:
         assessment = assessor.assess(findings, overall)
 
         assert "2 affected host(s)" in assessment.executive_summary
+
+    def test_cache_hit_skips_provider(self, monkeypatch):
+        """Cached successful assessments should bypass the provider call."""
+        findings = _make_findings(1)
+        overall = _make_overall(findings)
+        cached = AIAssessment(
+            executive_summary="Cached summary",
+            finding_rationales=[],
+            remediation_steps=[],
+            provider="ollama",
+            model="llama3.1:8b",
+            generation_time_ms=999,
+            fallback_used=False,
+        )
+
+        class FakeRedisClient:
+            def get(self, key):
+                return cached.model_dump_json()
+
+        fake_redis = SimpleNamespace(Redis=SimpleNamespace(from_url=lambda url: FakeRedisClient()))
+        monkeypatch.setitem(sys.modules, "redis", fake_redis)
+
+        config = AssessorConfig()
+        config.cache_enabled = True
+        provider = MockProvider(fail=True)
+        assessor = AIAssessor(provider=provider, config=config)
+
+        assessment = assessor.assess(findings, overall)
+
+        assert assessment.executive_summary == "Cached summary"
+        assert assessment.generation_time_ms == 0
+        assert assessment.fallback_used is False
+        assert provider.last_prompt is None
+
+    def test_cache_miss_writes_successful_assessment(self, monkeypatch):
+        """Successful non-fallback LLM assessments should be cached."""
+        written: dict[str, object] = {}
+
+        class FakeRedisClient:
+            def get(self, key):
+                return None
+
+            def setex(self, key, ttl, value):
+                written["key"] = key
+                written["ttl"] = ttl
+                written["value"] = value
+
+        fake_redis = SimpleNamespace(Redis=SimpleNamespace(from_url=lambda url: FakeRedisClient()))
+        monkeypatch.setitem(sys.modules, "redis", fake_redis)
+
+        config = AssessorConfig()
+        config.cache_enabled = True
+        config.cache_ttl_seconds = 123
+        provider = MockProvider()
+        assessor = AIAssessor(provider=provider, config=config)
+
+        assessment = assessor.assess(_make_findings(1), _make_overall(_make_findings(1)))
+
+        assert assessment.fallback_used is False
+        assert written["ttl"] == 123
+        assert "netmind:ai_assessment:" in str(written["key"])
+        assert "executive_summary" in str(written["value"])
+
+    def test_fallback_assessment_is_not_cached(self, monkeypatch):
+        """Fallback responses should not be stored in the LLM cache."""
+        writes: list[object] = []
+
+        class FakeRedisClient:
+            def get(self, key):
+                return None
+
+            def setex(self, *args):
+                writes.append(args)
+
+        fake_redis = SimpleNamespace(Redis=SimpleNamespace(from_url=lambda url: FakeRedisClient()))
+        monkeypatch.setitem(sys.modules, "redis", fake_redis)
+
+        config = AssessorConfig()
+        config.cache_enabled = True
+        provider = MockProvider(fail=True)
+        assessor = AIAssessor(provider=provider, config=config)
+
+        assessment = assessor.assess(_make_findings(1), _make_overall(_make_findings(1)))
+
+        assert assessment.fallback_used is True
+        assert writes == []
+
+    def test_cache_unavailable_does_not_block_llm(self, monkeypatch):
+        """Redis failures should fall through to the normal provider path."""
+
+        class FakeRedisClient:
+            def get(self, key):
+                raise RuntimeError("redis down")
+
+            def setex(self, *args):
+                raise RuntimeError("redis down")
+
+        fake_redis = SimpleNamespace(Redis=SimpleNamespace(from_url=lambda url: FakeRedisClient()))
+        monkeypatch.setitem(sys.modules, "redis", fake_redis)
+
+        config = AssessorConfig()
+        config.cache_enabled = True
+        provider = MockProvider()
+        assessor = AIAssessor(provider=provider, config=config)
+
+        assessment = assessor.assess(_make_findings(1), _make_overall(_make_findings(1)))
+
+        assert assessment.fallback_used is False
+        assert provider.last_prompt is not None
 
 
 # ---------------------------------------------------------------------------

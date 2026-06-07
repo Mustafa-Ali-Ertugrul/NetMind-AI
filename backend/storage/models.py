@@ -1,7 +1,7 @@
 """SQLAlchemy ORM models for NetMind AI.
 
 Mapped to db/schema.sql with the architect-recommended simplifications:
-  - No raw_hex BYTEA on packets
+  - No persistent packet table; packets stay in-memory for feature extraction
   - Aligned status values across pcap_files and analysis_jobs
   - No ftp_sessions, smtp_messages, users, audit_log (post-MVP)
 """
@@ -61,9 +61,6 @@ class PcapFile(Base):
     uploaded_by: Mapped[UUID | None] = mapped_column(PG_UUID(as_uuid=True), nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    packets: Mapped[list["Packet"]] = relationship(
-        back_populates="pcap", cascade="all, delete-orphan"
-    )
     flows: Mapped[list["Flow"]] = relationship(back_populates="pcap", cascade="all, delete-orphan")
     dns_queries: Mapped[list["DnsQuery"]] = relationship(
         back_populates="pcap", cascade="all, delete-orphan"
@@ -91,36 +88,6 @@ class PcapFile(Base):
         Index("idx_pcap_files_uploaded_at", "uploaded_at"),
         Index("idx_pcap_files_expires_at", "expires_at"),
         Index("idx_pcap_files_deleted_at", "deleted_at"),
-    )
-
-
-class Packet(Base):
-    __tablename__ = "packets"
-
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    pcap_id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True),
-        ForeignKey("pcap_files.id", ondelete="CASCADE"),
-        nullable=False,
-    )
-    packet_number: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    src_ip: Mapped[IPv4Address | IPv6Address] = mapped_column(INET, nullable=False)
-    dst_ip: Mapped[IPv4Address | IPv6Address] = mapped_column(INET, nullable=False)
-    src_port: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    dst_port: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    protocol: Mapped[str] = mapped_column(String(16), nullable=False)
-    length: Mapped[int] = mapped_column(Integer, nullable=False)
-    ttl: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    tcp_flags: Mapped[str | None] = mapped_column(String(16), nullable=True)
-    info: Mapped[str | None] = mapped_column(Text, nullable=True)
-
-    pcap: Mapped["PcapFile"] = relationship(back_populates="packets")
-
-    __table_args__ = (
-        Index("idx_packets_pcap_id", "pcap_id"),
-        Index("idx_packets_ips", "src_ip", "dst_ip"),
-        Index("idx_packets_protocol", "protocol"),
     )
 
 

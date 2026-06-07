@@ -58,11 +58,6 @@ class Settings(BaseSettings):
 
     enable_docs: bool = Field(default=True)
 
-    # Packet storage: none = skip DB write, sample = evenly-spaced subset,
-    # all = every packet (legacy / debug).
-    store_packets: Literal["none", "sample", "all"] = Field(default="sample")
-    store_packets_sample_limit: int = Field(default=1000)
-
     # Object storage backend (local = disk, s3 = minio/s3-compatible)
     object_store_backend: Literal["local", "s3"] = Field(default="local")
     s3_endpoint_url: str | None = Field(default=None)

@@ -146,6 +146,8 @@ class TestGetObjectStore:
             )
             store = get_object_store(settings)
             assert isinstance(store, S3ObjectStore)
+            fake_minio.Minio.assert_called_once()
+            assert fake_minio.Minio.call_args[0][0] == "minio:9000"
 
     def test_unknown_backend_raises(self):
         mock_settings = MagicMock()

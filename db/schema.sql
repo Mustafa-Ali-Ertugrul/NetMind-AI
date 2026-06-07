@@ -38,32 +38,7 @@ CREATE INDEX idx_pcap_files_status      ON pcap_files(status);
 CREATE INDEX idx_pcap_files_uploaded_at ON pcap_files(uploaded_at);
 
 -- ============================================================
--- 2. packets : Individual packet records (TimescaleDB hypertable)
--- ============================================================
-CREATE TABLE packets (
-    time          TIMESTAMP WITH TIME ZONE NOT NULL,
-    pcap_id       UUID NOT NULL REFERENCES pcap_files(id) ON DELETE CASCADE,
-    packet_number BIGINT,
-    src_ip        INET,
-    dst_ip        INET,
-    src_port      INTEGER,
-    dst_port      INTEGER,
-    protocol      TEXT,
-    length        INTEGER,
-    ttl           INTEGER,
-    tcp_flags     TEXT,
-    info          TEXT,
-    raw_hex       BYTEA
-);
-
-SELECT create_hypertable('packets', 'time', chunk_time_interval => INTERVAL '1 hour');
-
-CREATE INDEX idx_packets_pcap_id  ON packets(pcap_id);
-CREATE INDEX idx_packets_ips      ON packets(src_ip, dst_ip);
-CREATE INDEX idx_packets_protocol ON packets(protocol);
-
--- ============================================================
--- 3. flows : Aggregated 5-tuple flows (TimescaleDB hypertable)
+-- 2. flows : Aggregated 5-tuple flows (TimescaleDB hypertable)
 -- ============================================================
 CREATE TABLE flows (
     time          TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -267,15 +242,6 @@ CREATE INDEX idx_audit_created ON audit_log(created_at);
 -- TimescaleDB recommended configurations
 -- ============================================================
 
--- Enable compression on packets after 7 days
-ALTER TABLE packets SET (
-    timescaledb.compress,
-    timescaledb.compress_segmentby = 'pcap_id,protocol',
-    timescaledb.compress_orderby   = 'time DESC'
-);
-
-SELECT add_compression_policy('packets', INTERVAL '7 days');
-
 -- Enable compression on flows after 7 days
 ALTER TABLE flows SET (
     timescaledb.compress,
@@ -285,6 +251,5 @@ ALTER TABLE flows SET (
 
 SELECT add_compression_policy('flows', INTERVAL '7 days');
 
--- Optional: Retention policy - keep raw data for 90 days
--- SELECT add_retention_policy('packets', INTERVAL '90 days');
+-- Optional: Retention policy - keep flow data for 90 days
 -- SELECT add_retention_policy('flows', INTERVAL '90 days');

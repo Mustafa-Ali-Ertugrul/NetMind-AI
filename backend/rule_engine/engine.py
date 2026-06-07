@@ -9,16 +9,8 @@ from backend.contracts.findings import Finding, OverallRiskScore
 
 from .registry import RuleRegistry
 from .rules import (
-    BeaconingRule,
-    CleartextCredentialsRule,
     DNSTunnelingRule,
-    FTPBruteForceRule,
     HTTPAnomalyRule,
-    ICMPFloodRule,
-    LargeOutboundRule,
-    PortScanRule,
-    SMTPAbuseRule,
-    SYNFloodRule,
     TopTalkerRule,
 )
 
@@ -40,19 +32,10 @@ class RuleEngine:
     @staticmethod
     def _default_registry() -> RuleRegistry:
         reg = RuleRegistry()
-        # Original 4 rules (Sprints 1-4)
-        reg.register(PortScanRule())
+        # Production MVP default: DNS + HTTP + flow-volume anomaly.
         reg.register(DNSTunnelingRule())
-        reg.register(FTPBruteForceRule())
-        reg.register(SMTPAbuseRule())
-        # Sprint 9B rules
-        reg.register(SYNFloodRule())
-        reg.register(ICMPFloodRule())
-        reg.register(TopTalkerRule())
         reg.register(HTTPAnomalyRule())
-        reg.register(BeaconingRule())
-        reg.register(CleartextCredentialsRule())
-        reg.register(LargeOutboundRule())
+        reg.register(TopTalkerRule())
         return reg
 
     @property

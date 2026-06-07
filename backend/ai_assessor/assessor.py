@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import hashlib
 import time
 from datetime import datetime
 
@@ -83,8 +84,13 @@ class AIAssessor:
             return self._fallback_assessment(findings, overall, fallback_used=True)
 
         t0 = time.perf_counter()
+        system_prompt, user_prompt = build_assessment_prompt(filtered, overall)
+        cache_key = self._cache_key(system_prompt, user_prompt)
+        cached = self._read_cached_assessment(cache_key)
+        if cached is not None:
+            return cached
+
         try:
-            system_prompt, user_prompt = build_assessment_prompt(filtered, overall)
             raw = self._provider.generate(
                 prompt=user_prompt,
                 system=system_prompt,
@@ -100,7 +106,11 @@ class AIAssessor:
         elapsed_ms = int((time.perf_counter() - t0) * 1000)
 
         try:
-            return self._parse_assessment(raw, filtered, overall, elapsed_ms, fallback_used=False)
+            assessment = self._parse_assessment(
+                raw, filtered, overall, elapsed_ms, fallback_used=False
+            )
+            self._write_cached_assessment(cache_key, assessment)
+            return assessment
         except InvalidResponseError as exc:
             logger.warning("LLM response invalid, using fallback: %s", exc)
             return self._fallback_assessment(
@@ -128,6 +138,55 @@ class AIAssessor:
             base_url=self._config.ollama_url,
             model=self._config.ollama_model,
         )
+
+    def _cache_key(self, system_prompt: str, user_prompt: str) -> str:
+        payload = json.dumps(
+            {
+                "model": self._model_name,
+                "min_severity": self._config.min_severity.upper(),
+                "system": system_prompt,
+                "prompt": user_prompt,
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+        return f"netmind:ai_assessment:{digest}"
+
+    def _read_cached_assessment(self, cache_key: str) -> AIAssessment | None:
+        if not self._config.cache_enabled:
+            return None
+        try:
+            import redis
+
+            client = redis.Redis.from_url(self._config.cache_redis_url)
+            raw = client.get(cache_key)
+            if raw is None:
+                return None
+            data = json.loads(raw)
+            assessment = AIAssessment.model_validate(data)
+            assessment.generated_at = datetime.utcnow()
+            assessment.generation_time_ms = 0
+            logger.info("AI assessment cache hit for key %s", cache_key)
+            return assessment
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("AI assessment cache read skipped: %s", exc)
+            return None
+
+    def _write_cached_assessment(self, cache_key: str, assessment: AIAssessment) -> None:
+        if not self._config.cache_enabled or assessment.fallback_used:
+            return
+        try:
+            import redis
+
+            client = redis.Redis.from_url(self._config.cache_redis_url)
+            client.setex(
+                cache_key,
+                self._config.cache_ttl_seconds,
+                assessment.model_dump_json(),
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("AI assessment cache write skipped: %s", exc)
 
     def _parse_assessment(
         self,

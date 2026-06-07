@@ -21,4 +21,4 @@ COPY backend/ ./backend/
 
 RUN mkdir -p /var/lib/netmind/pcaps
 
-CMD ["celery", "-A", "backend.worker", "worker", "--loglevel=INFO", "--pool=prefork", "--concurrency=2", "--max-tasks-per-child=10"]
+CMD ["celery", "-A", "backend.worker", "worker", "--loglevel=INFO", "--pool=prefork", "--autoscale=10,2", "--max-tasks-per-child=10"]

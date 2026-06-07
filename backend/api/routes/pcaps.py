@@ -65,11 +65,17 @@ async def upload_pcap(
     if suffix not in settings.upload_allowed_extensions:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail=f"Unsupported file type: {suffix}. "
+            detail=f"Unsupported file extension: {suffix}. "
             f"Allowed: {settings.upload_allowed_extensions}",
         )
 
     content = await file.read()
+
+    if len(content) > settings.upload_max_size_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"File exceeds maximum size of {settings.upload_max_size_mb} MB",
+        )
 
     # Magic bytes validation: PCAP = d4c3b2a1 / a1b2c3d4, PCAPNG = 0a0d0d0a
     if len(content) >= 4:
@@ -86,12 +92,6 @@ async def upload_pcap(
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail="File is too small to be a valid PCAP/PCAPNG",
-        )
-
-    if len(content) > settings.upload_max_size_bytes:
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"File exceeds maximum size of {settings.upload_max_size_mb} MB",
         )
 
     sha256 = hashlib.sha256(content).hexdigest()

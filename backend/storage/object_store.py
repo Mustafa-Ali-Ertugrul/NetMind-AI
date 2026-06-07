@@ -98,6 +98,7 @@ class S3ObjectStore:
         _client=None,
     ) -> None:
         self.bucket = bucket
+        endpoint = endpoint_url.removeprefix("http://").removeprefix("https://")
 
         if _client is not None:
             self.client = _client
@@ -110,7 +111,7 @@ class S3ObjectStore:
                 ) from exc
 
             self.client = Minio(
-                endpoint_url,
+                endpoint,
                 access_key=access_key,
                 secret_key=secret_key,
                 region=region,

@@ -5,15 +5,13 @@
 ### In Scope
 1. **Single-user mode** (no JWT auth, basic session)
 2. **Upload** one PCAP/PCAPNG file at a time, up to 100MB
-3. **Parse** protocols: TCP, UDP, ICMP, HTTP, DNS
-4. **Extract** metadata: top talkers, protocol distribution, timeline
-5. **Store** results in PostgreSQL with TimescaleDB
-6. **Rule engine** with 5 rules:
-   - Cleartext HTTP Basic Auth detected
-   - DNS query for known-malicious domain (local static list)
-   - Unusual port usage (telnet 23, FTP 21)
-   - ICMP flood (>100/min from single source)
-   - Suspicious user-agent string
+3. **Parse** protocols needed for MVP analysis: HTTP, DNS, TCP, UDP
+4. **Extract** metadata: aggregated flows, top talkers, protocol distribution, timeline
+5. **Store** PCAP objects in MinIO and derived results in PostgreSQL with TimescaleDB
+6. **Rule engine** with 3 default production MVP rules:
+   - DNS tunneling detection
+   - HTTP anomaly detection
+   - Top talker flow-volume anomaly detection
 7. **AI assessment** via Ollama using default `llama3.2` model, basic prompt template
 8. **Dashboard**:
    - Upload zone with progress
@@ -22,9 +20,8 @@
    - Top talkers bar chart
    - Alert table with severity coloring
    - AI report card (executive summary, findings, recommendations)
-   - Simple packet table (top 1000 rows, no pagination)
 9. **Docker Compose** full stack: PostgreSQL, Redis, MinIO, Ollama, API, Frontend, Worker
-10. **Async analysis** via Celery with real-time progress streaming
+10. **Async analysis** via Celery with worker autoscale and real-time progress streaming
 
 ### Excluded from MVP
 - Multi-user authentication and RBAC
@@ -38,7 +35,7 @@
 - Search/filter across multiple captures
 - Packet payload hex viewer
 - API rate limiting and quotas
-- Horizontal worker scaling
+- Packet-level database storage
 
 ---
 

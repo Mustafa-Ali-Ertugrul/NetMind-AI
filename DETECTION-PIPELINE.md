@@ -95,19 +95,20 @@ AI Assessor ──[SecurityReport]──▶ Storage + Frontend API
 
 ### What Each Stage Reads and Writes
 
-**Stage 1: Protocol Parser** (`packets` → `parsed_protocols`)
+**Stage 1: Protocol Parser** (`pcap object` → `parsed_protocols`)
 - Reads: PCAP file from disk/Docker volume
-- Writes to DB: `packets`, `dns_queries`, `http_requests`, `flows`
+- Writes to DB: no packet rows; protocol records and flows are persisted by later stages
 - Writes to pipeline: `ParsedProtocols` context object (in-memory, passed to next stage)
 
 **Stage 2: Feature Extractor** (`parsed_records` → `aggregated_features`)
-- Reads from DB: All parsed records for this pcap_id
+- Reads from memory: Parsed protocol records for this PCAP
 - Computes: Flow aggregation, connection profiles, DNS entropy, traffic baselines
+- Writes to DB: aggregated `flows`
 - Writes to pipeline: `AggregatedFeatures` (in-memory)
 
 **Stage 3: Rule Engine** (`features` → `findings`)
 - Reads: `AggregatedFeatures`
-- Evaluates: All registered rules via `RuleRegistry`
+- Evaluates: default production MVP rules via `RuleRegistry` (`DNSTunnelingRule`, `HTTPAnomalyRule`, `TopTalkerRule`)
 - Writes to DB: `alerts`
 - Writes to pipeline: `list[Finding]`, `OverallRiskScore`
 
@@ -1375,13 +1376,13 @@ def validate_llm_output(report: dict, input_context: AIContext) -> ValidationRes
 
 | Data | Classification | Stored Where | Consumed By | Sent to LLM? |
 |---|---|---|---|---|
-| Raw packet hex | **Raw packet data** | `packets.raw_hex` (DB) | Packet browser UI | No |
+| Raw packet bytes/hex | **Raw packet data** | Not persisted in MVP | N/A | No |
 | DNS response records | **Raw packet data** | `dns_queries.answers` (DB, JSONB) | DNS table UI | No |
 | HTTP request/response bodies | **Raw packet data** | `http_requests.request_headers`, `response_headers` (DB, JSONB) | HTTP table UI | No |
 | FTP command sequences | **Raw packet data** | `ftp_sessions.commands` (DB) | FTP detail UI | No |
 | SMTP envelope headers | **Raw packet data** | `smtp_messages.headers` (DB) | SMTP detail UI | No |
 | --- | --- | --- | --- | --- |
-| Packet length, IP, port, protocol tuples | **Extracted features** | `packets`, `flows` (DB) | Feature Extractor, Flow UI | No |
+| Packet length, IP, port, protocol tuples | **Extracted features** | Parser memory, aggregated into `flows` (DB) | Feature Extractor, Flow UI | No |
 | Protocol distribution (%) | **Extracted features** | Computed in pipeline | Rule Engine, AI Assessor, Dashboard | Yes (top 5) |
 | Flow records (5-tuple + bytes + duration) | **Extracted features** | `flows` (DB) | Feature Extractor, Flow UI | No (full list) |
 | Connection profiles per source IP | **Extracted features** | Pipeline only | Rule Engine | No |
@@ -1405,7 +1406,7 @@ def validate_llm_output(report: dict, input_context: AIContext) -> ValidationRes
 ### 10.2 Tier Summary
 
 ```
-TIER 1: Raw Packet Data (DB only, never pipeline context)
+TIER 1: Raw Packet Data (not persisted in MVP)
   Contains full payload + headers.
   Used for: hex viewer, deep protocol analysis (post-MVP).
   NOT consumed by rules, NOT sent to LLM.
