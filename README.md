@@ -2,11 +2,28 @@
 
 **AI-powered network observability and attack simulation platform.**
 
+[![GitHub stars](https://img.shields.io/github/stars/Mustafa-Ali-Ertugrul/NetMind-AI?style=social)](https://github.com/Mustafa-Ali-Ertugrul/NetMind-AI/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/Mustafa-Ali-Ertugrul/NetMind-AI?style=social)](https://github.com/Mustafa-Ali-Ertugrul/NetMind-AI/forks)
+
 NetMind AI turns packet captures and live traffic events into a security cockpit: upload PCAP files, extract protocol and flow features, run detection rules, generate AI-assisted assessments, and demonstrate attack scenarios from a live monitoring dashboard.
 
 It started as a log/PCAP analyzer. It is now closer to a compact cyber range MVP: observability, detection, analyst workflow, and demo-ready attack simulation in one local stack.
 
-![NetMind AI live monitor](docs/assets/live-monitor.png)
+![NetMind AI live monitor demo](docs/assets/live-monitor-demo.gif)
+
+---
+
+## Turkce Ozet - Turkiye'deki Isverenler Icin
+
+NetMind AI, siber guvenlik ve yazilim muhendisligi yetkinliklerini tek bir urunde gosteren full-stack bir MVP'dir. Proje PCAP/PCAPNG dosyalarini analiz eder, ag akislarini ve protokol ozetlerini cikarir, Python tabanli tespit kurallarini calistirir, yerel AI destekli degerlendirme uretir ve React tabanli canli izleme panelinde risk, alarm, top talker ve servis sagligi gorunumlerini sunar.
+
+Turkiye'deki isverenler icin one cikan noktalar:
+
+- **Backend gucu:** FastAPI, Celery, Redis, PostgreSQL, SQLAlchemy, Alembic ve Docker Compose ile uretime yaklasan servis mimarisi.
+- **Siber guvenlik odagi:** PCAP analizi, flow/feature extraction, rule engine, live alerting, attack simulation ve AI-assisted assessment.
+- **Frontend urun deneyimi:** React + Vite arayuzu, canli dashboard, upload akisi, job detaylari, storage durumu ve demo modu.
+- **Test ve kalite:** Backend testleri, frontend typecheck/lint/test/e2e akislari ve dataset validation raporlari.
+- **Portfolyo degeri:** GitHub Stars/Forks topluluk ilgisi icin takip edilebilir; LinkedIn'de demo GIF veya kisa video ile paylasima uygundur.
 
 ---
 
@@ -37,15 +54,40 @@ Most security tools focus on one lane: packet inspection, IDS alerts, SIEM/XDR d
 
 ---
 
-## Screenshots
+## Demo GIFs
 
 ### Live Observability Dashboard
 
-![Live monitor dashboard](docs/assets/live-monitor.png)
+![Live monitor dashboard demo](docs/assets/live-monitor-demo.gif)
 
 ### Attack Simulation Flow
 
+![Attack simulation demo](docs/assets/attack-simulation-demo.gif)
+
 The live page includes **Demo Mode** with Port Scan, DNS Tunnel, Brute Force, and Reset scenarios. These scenarios overlay simulated alerts, risk movement, and top talkers on top of real polled data so the product can be demonstrated even without active attack traffic.
+
+---
+
+## LinkedIn Share Text
+
+```text
+NetMind AI projemi GitHub'da paylastim:
+
+AI destekli ag gozlemlenebilirligi, PCAP analizi ve saldiri simulasyonu icin full-stack bir siber guvenlik MVP'si.
+
+Kullandigim teknolojiler:
+- FastAPI, Celery, Redis, PostgreSQL
+- React, Vite, TanStack Query, ECharts
+- Docker Compose, tshark, Python rule engine
+- Yerel/Ollama uyumlu AI assessment akisi
+
+Projede PCAP/PCAPNG yukleme, flow ve protokol ozeti cikarma, tespit kurallari, canli risk paneli, top talkers, active alerts ve demo attack mode bulunuyor.
+
+GitHub Stars/Forks topluluk ilgisini takip etmek icin:
+https://github.com/Mustafa-Ali-Ertugrul/NetMind-AI
+
+#CyberSecurity #Python #FastAPI #React #Docker #SOC #NetworkSecurity #AI
+```
 
 ---
 
@@ -527,9 +569,9 @@ NetMind-AI/
 
 ### Showcase Sprint
 
-- Polished GitHub screenshots and GIF flow
+- Polished GitHub demo GIFs
 - Short architecture video
-- LinkedIn/CV project summary
+- LinkedIn/CV project summary and Turkish employer-facing summary
 - Release notes and tagged demo version
 
 ### Enterprise Expansion
