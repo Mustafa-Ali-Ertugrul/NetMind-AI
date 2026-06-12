@@ -594,3 +594,7 @@ Current state:
 - Production readiness: **~85%**
 
 The project is ready to show as a working MVP. The next highest-impact work is deployment hardening and public presentation polish.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
