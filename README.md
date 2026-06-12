@@ -220,7 +220,7 @@ The recommended path is Docker Compose because it starts the full product stack.
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/<your-username>/NetMind-AI.git
+git clone https://github.com/Mustafa-Ali-Ertugrul/NetMind-AI.git
 cd NetMind-AI
 ```
 
@@ -340,13 +340,14 @@ The response contains a `job_id`:
 Poll the job:
 
 ```bash
-curl -s http://localhost:8000/api/v1/jobs/<job_id>
+JOB_ID=00000000-0000-0000-0000-000000000000
+curl -s "http://localhost:8000/api/v1/jobs/${JOB_ID}"
 ```
 
 Fetch the result after completion:
 
 ```bash
-curl -s http://localhost:8000/api/v1/jobs/<job_id>/result
+curl -s "http://localhost:8000/api/v1/jobs/${JOB_ID}/result"
 ```
 
 ### 7. Stop the stack
