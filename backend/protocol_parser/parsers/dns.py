@@ -1,10 +1,11 @@
 """DNS packet parser for tshark JSON output."""
 
-from typing import Any
+from datetime import UTC
 from ipaddress import IPv4Address, IPv6Address
+from typing import Any
+from uuid import UUID
 
 from backend.contracts.parser_output import ParsedDNS
-from backend.contracts.enums import Protocol
 
 
 def _safe_get(data: dict[str, Any], *keys: str, default: Any = None) -> Any:
@@ -59,7 +60,7 @@ def _parse_str(value: Any, default: str | None = None) -> str | None:
 
 def parse_dns_packet(
     packet_data: dict[str, Any],
-    pcap_id: str,
+    pcap_id: str | UUID,
 ) -> ParsedDNS | None:
     """Parse DNS packet from tshark JSON output.
 
@@ -86,9 +87,9 @@ def parse_dns_packet(
         timestamp = None
         if timestamp_str:
             try:
-                from datetime import datetime, timezone
+                from datetime import datetime
 
-                timestamp = datetime.fromtimestamp(float(timestamp_str), tz=timezone.utc)
+                timestamp = datetime.fromtimestamp(float(timestamp_str), tz=UTC)
             except (ValueError, TypeError):
                 pass
 

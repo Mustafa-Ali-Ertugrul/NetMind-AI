@@ -13,11 +13,11 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any
+from ipaddress import IPv4Address, IPv6Address
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.api.dependencies import get_db_session
@@ -32,6 +32,7 @@ from backend.api.schemas import (
     RuleStatsResponse,
     TimelineBucketResponse,
 )
+from backend.ingestion.event import FlowEvent
 from backend.live_engine.service import LiveEngineService
 from backend.storage.models import LiveAlert, RuleStats
 from backend.storage.timeline_repository import TimelineRepository
@@ -95,11 +96,9 @@ async def ingest_event(
     if err is not None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err)
 
-    # Convert to FlowEvent and enqueue
-    from backend.ingestion.event import FlowEvent
-    from ipaddress import IPv4Address, IPv6Address
-
     # Validate IPs
+    src: IPv4Address | IPv6Address
+    dst: IPv4Address | IPv6Address
     try:
         try:
             src = IPv4Address(body.src_ip)
@@ -122,7 +121,7 @@ async def ingest_event(
         src_port=body.src_port,
         dst_port=body.dst_port,
         protocol=body.protocol.upper().strip(),
-        payload_bytes=body.bytes,
+        bytes=body.bytes,
         packets=max(body.packets, 1),
         flags=body.flags,
         http_method=body.http_method,

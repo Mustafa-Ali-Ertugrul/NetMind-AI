@@ -151,9 +151,9 @@ async def get_job_talkers(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Job {job_id} not found",
-        )
+    )
     aggregator = TopTalkerAggregator()
-    result = aggregator.aggregate(db, pcap_id=job.pcap_id, limit=limit)
+    result = await db.run_sync(lambda sync_db: aggregator.aggregate(sync_db, pcap_id=job.pcap_id, limit=limit))
     return result.model_dump(mode="json")
 
 
@@ -206,8 +206,8 @@ async def list_job_artifacts(
     Returns artifact metadata (filename, type, size, created_at).
     Actual file download is handled by the dedicated artifact download handler.
     """
-    from backend.storage.service import StorageService
     from backend.storage.schemas import ArtifactInfo
+    from backend.storage.service import StorageService
 
     svc = StorageService(db=db, settings=get_settings())
     artifacts = await svc.list_artifacts(job_id)
@@ -222,8 +222,9 @@ async def download_job_artifact(
 ):
     """Download a specific artifact file for a job."""
     from fastapi.responses import FileResponse
-    from backend.storage.service import StorageService
+
     from backend.storage.exceptions import ArtifactNotFoundError
+    from backend.storage.service import StorageService
 
     svc = StorageService(db=db, settings=get_settings())
     try:

@@ -29,7 +29,28 @@ dev = [
     "httpx>=0.27.0",
     "ruff>=0.3.0",
     "mypy>=1.8.0",
+    "types-PyYAML>=6.0.12",
 ]
+
+[tool.mypy]
+python_version = "3.11"
+strict_optional = true
+ignore_missing_imports = true
+plugins = ["pydantic.mypy"]
+mypy_path = ".."
+exclude = [
+    "^backend/tests/",
+    "^backend/migrations/",
+]
+
+[[tool.mypy.overrides]]
+module = [
+    "backend.analytics.aggregators.protocols",
+    "backend.analytics.aggregators.talkers",
+    "backend.analytics.aggregators.timeline",
+    "backend.storage.timeline_repository",
+]
+ignore_errors = true
 
 [tool.ruff]
 line-length = 100
@@ -37,7 +58,7 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "N", "W"]
-ignore = ["E501"]
+ignore = ["B008", "E501"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

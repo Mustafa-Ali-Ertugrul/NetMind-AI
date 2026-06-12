@@ -15,8 +15,8 @@ from backend.api.metrics import MetricsMiddleware, metrics_endpoint
 from backend.api.rate_limit import limiter
 from backend.api.routes import health, jobs, live, pcaps, storage
 from backend.config import get_settings
-from backend.storage.database import SyncSessionLocal, init_db
 from backend.live_engine.service import LiveEngineService
+from backend.storage.database import SyncSessionLocal, init_db
 
 logger = logging.getLogger(__name__)
 
@@ -46,13 +46,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         logger.info("Live engine service started")
     except Exception as exc:
         logger.warning("Live engine service failed to start: %s", exc)
-        live_service = None
-    app.state.live_service = live_service
+        app.state.live_service = None
+    else:
+        app.state.live_service = live_service
 
     yield
 
     # ── Shutdown ────────────────────────────────────────────
-    if live_service is not None:
+    if app.state.live_service is not None:
         await live_service.stop()
         logger.info("Live engine service stopped")
     logger.info("Shutting down %s", settings.app_name)

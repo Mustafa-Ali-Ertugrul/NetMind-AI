@@ -31,8 +31,8 @@ from backend.rule_engine import RuleEngine
 from backend.storage.alert_writer import write_alerts_from_findings
 from backend.storage.assessment_writer import write_ai_assessment
 from backend.storage.flow_writer import write_flows_from_features
-from backend.storage.object_store import get_object_store
 from backend.storage.models import AnalysisJob, PcapFile
+from backend.storage.object_store import get_object_store
 from backend.worker import celery_app
 
 logger = logging.getLogger("netmind.worker")
@@ -96,6 +96,8 @@ def analyze_pcap_task(self, job_id: str) -> dict:
     }
 
     with _SyncSessionLocal() as db:
+        job: AnalysisJob | None = None
+        pcap: PcapFile | None = None
         try:
             job = db.execute(
                 select(AnalysisJob).where(AnalysisJob.id == job_uuid)
@@ -215,13 +217,22 @@ def analyze_pcap_task(self, job_id: str) -> dict:
 
         except TsharkError as exc:
             logger.exception("Tshark error in job %s", job_id)
-            _mark_failed(db, job, pcap, summary, f"tshark: {exc}")
+            if job is not None and pcap is not None:
+                _mark_failed(db, job, pcap, summary, f"tshark: {exc}")
+            else:
+                summary["error"] = f"tshark: {exc}"
         except FileNotFoundError as exc:
             logger.exception("File missing for job %s", job_id)
-            _mark_failed(db, job, pcap, summary, str(exc))
+            if job is not None and pcap is not None:
+                _mark_failed(db, job, pcap, summary, str(exc))
+            else:
+                summary["error"] = str(exc)
         except Exception as exc:
             logger.exception("Unhandled error in job %s", job_id)
-            _mark_failed(db, job, pcap, summary, f"{type(exc).__name__}: {exc}")
+            if job is not None and pcap is not None:
+                _mark_failed(db, job, pcap, summary, f"{type(exc).__name__}: {exc}")
+            else:
+                summary["error"] = f"{type(exc).__name__}: {exc}"
             summary["traceback"] = traceback.format_exc()
 
     return summary

@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
-import hashlib
 import time
 from datetime import datetime
+from typing import cast
 
 from backend.ai_assessor.config import AssessorConfig
 from backend.ai_assessor.exceptions import (
@@ -163,7 +164,7 @@ class AIAssessor:
             raw = client.get(cache_key)
             if raw is None:
                 return None
-            data = json.loads(raw)
+            data = json.loads(cast(str | bytes | bytearray, raw))
             assessment = AIAssessment.model_validate(data)
             assessment.generated_at = datetime.utcnow()
             assessment.generation_time_ms = 0

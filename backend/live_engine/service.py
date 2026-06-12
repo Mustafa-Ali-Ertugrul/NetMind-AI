@@ -20,23 +20,19 @@ Designed for forward-compatibility::
 
 from __future__ import annotations
 
-import asyncio
 import logging
-from dataclasses import dataclass, field
-from datetime import datetime
+from collections.abc import Callable
+from dataclasses import dataclass
 from time import monotonic
-from typing import Callable
 from uuid import UUID, uuid4
 
 from sqlalchemy.orm import Session
 
 from backend.ingestion.event import FlowEvent
 from backend.ingestion.stream import EventConsumer, EventStream
-from backend.live_engine.adaptive_threshold import AdaptiveThresholdTracker
+from backend.live_engine.adaptive_threshold import AdaptiveThresholdTracker, RuleBaselineStats
 from backend.live_engine.provider import EngineProvider, GlobalEngineProvider
 from backend.live_engine.streaming_engine import StreamingRuleEngine
-from backend.storage.live_alert_writer import LiveAlertWriter
-from backend.storage.rule_stats_writer import RuleStatsWriter
 
 logger = logging.getLogger("netmind.live_engine.service")
 
@@ -249,7 +245,7 @@ class LiveEngineService:
     # Adaptive threshold stats (opt-in)
     # ------------------------------------------------------------------
 
-    def adaptive_stats(self) -> dict[str, float] | None:
+    def adaptive_stats(self) -> dict[str, RuleBaselineStats] | None:
         """Return current adaptive threshold statistics if enabled."""
         if self._adaptive_tracker is None:
             return None

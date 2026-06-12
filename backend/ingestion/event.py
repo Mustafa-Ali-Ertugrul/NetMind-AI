@@ -85,10 +85,12 @@ class RawEvent(BaseModel):
         ipaddress objects are created once here so downstream code
         doesn't need string parsing on every access.
         """
+        src: IPv4Address | IPv6Address
         try:
             src = IPv4Address(self.src_ip)
         except ValueError:
             src = IPv6Address(self.src_ip)
+        dst: IPv4Address | IPv6Address
         try:
             dst = IPv4Address(self.dst_ip)
         except ValueError:
@@ -101,7 +103,7 @@ class RawEvent(BaseModel):
             src_port=self.src_port,
             dst_port=self.dst_port,
             protocol=self.protocol,
-            payload_bytes=self.payload_bytes,
+            bytes=self.payload_bytes,
             packets=self.packets,
             flags=self.flags,
             http_method=self.http_method,

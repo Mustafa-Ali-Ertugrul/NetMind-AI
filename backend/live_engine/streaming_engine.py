@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
@@ -40,9 +40,8 @@ from backend.feature_extractor.dns_profiles import DNSProfileBuilder
 from backend.feature_extractor.http_summary import HTTPSummaryBuilder
 from backend.ingestion.event import FlowEvent
 from backend.ingestion.flow_aggregator import StreamingFlowAggregator
-from backend.rule_engine.engine import RuleEngine
-from backend.rule_engine.base_rule import BaseDetectionRule
 from backend.live_engine.adaptive_threshold import AdaptiveThresholdTracker
+from backend.rule_engine.engine import RuleEngine
 
 if TYPE_CHECKING:
     from backend.storage.live_alert_writer import LiveAlertWriter
@@ -137,8 +136,8 @@ def _build_connection_profiles(flows: list[FlowRecord]) -> list[ConnectionProfil
         total_packets = sum(f.packets_total for f in src_flows)
 
         timestamps = [f.start_time for f in src_flows if f.start_time is not None]
-        first_seen = min(timestamps) if timestamps else datetime.now(timezone.utc)
-        last_seen = max(timestamps) if timestamps else datetime.now(timezone.utc)
+        first_seen = min(timestamps) if timestamps else datetime.now(UTC)
+        last_seen = max(timestamps) if timestamps else datetime.now(UTC)
 
         total_connections = len(src_flows)
         failed_connections = sum(
@@ -446,7 +445,7 @@ class StreamingRuleEngine:
             key=lambda fid: max((f.risk_score for f in findings if f.id == fid), default=0),
             reverse=True,
         )[:5]
-        failed_rules = []
+        failed_rules: list[str] = []
         return OverallRiskScore(
             max_score=max_score,
             weighted_score=weighted_score,
