@@ -7,7 +7,7 @@ Computes per-rule confusion matrix and derived metrics
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -133,7 +133,7 @@ class MetricCalculator:
             attack_types: Attack types from the label.
         """
         all_rule_ids = set(KNOWN_RULES)
-        
+
         # Determine which rules were EXPECTED to fire
         expected_rules: set[str] = set()
         if attack_present:
@@ -145,7 +145,7 @@ class MetricCalculator:
             rm = self._ensure_rule(rid)
             fired = rid in rule_ids_fired
             expected = rid in expected_rules
-            
+
             if expected:
                 # This rule was expected to fire
                 if fired:
@@ -158,7 +158,7 @@ class MetricCalculator:
                     rm.matrix.fp += 1
                 else:
                     rm.matrix.tn += 1
-            
+
             rm.labeled_pcaps += 1
 
     def summary(self) -> dict[str, Any]:

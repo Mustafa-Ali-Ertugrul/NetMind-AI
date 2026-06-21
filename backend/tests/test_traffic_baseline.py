@@ -1,10 +1,12 @@
 """Tests for TrafficBaselineComputer."""
 
+from datetime import UTC, datetime
+
 import pytest
-from datetime import datetime, timezone
 
 from backend.contracts.enums import Protocol
 from backend.feature_extractor.traffic_baseline import TrafficBaselineComputer
+
 from .fixtures import make_parsed_packet
 
 
@@ -103,8 +105,8 @@ class TestTrafficBaselineComputer:
             packets_total=1,
             bytes_total=500,
             duration_ms=1000.0,
-            start_time=datetime(2024, 1, 1, tzinfo=timezone.utc),
-            end_time=datetime(2024, 1, 1, 0, 0, 1, tzinfo=timezone.utc),
+            start_time=datetime(2024, 1, 1, tzinfo=UTC),
+            end_time=datetime(2024, 1, 1, 0, 0, 1, tzinfo=UTC),
             src_bytes=500,
             dst_bytes=0,
         )

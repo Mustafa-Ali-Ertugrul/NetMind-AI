@@ -1,6 +1,6 @@
 """Tests for NET-007 ICMP Flood Detection Rule."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from ipaddress import IPv4Address
 
 from backend.contracts.features import AggregatedFeatures, FlowRecord
@@ -19,8 +19,8 @@ def _make_icmp_flow(pkt_count: int, duration_ms: float = 1000) -> FlowRecord:
         packets_total=pkt_count,
         bytes_total=pkt_count * 80,
         duration_ms=duration_ms,
-        start_time=datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
-        end_time=datetime(2025, 1, 1, 0, 0, 1, tzinfo=timezone.utc),
+        start_time=datetime(2025, 1, 1, 0, 0, 0, tzinfo=UTC),
+        end_time=datetime(2025, 1, 1, 0, 0, 1, tzinfo=UTC),
         src_bytes=pkt_count * 40,
         dst_bytes=pkt_count * 40,
         syn_count=0,
@@ -35,8 +35,8 @@ def _make_features(flows: list[FlowRecord]) -> AggregatedFeatures:
     return AggregatedFeatures(
         pcap_id="00000000-0000-0000-0000-000000000000",
         capture_duration_seconds=1.0,
-        time_window_start=datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
-        time_window_end=datetime(2025, 1, 1, 0, 0, 1, tzinfo=timezone.utc),
+        time_window_start=datetime(2025, 1, 1, 0, 0, 0, tzinfo=UTC),
+        time_window_end=datetime(2025, 1, 1, 0, 0, 1, tzinfo=UTC),
         traffic_baseline={
             "expected_bytes_per_second": 1000.0,
             "expected_packets_per_second": 10.0,
@@ -101,8 +101,8 @@ def test_no_trigger_for_tcp():
         packets_total=250,
         bytes_total=20000,
         duration_ms=500,
-        start_time=datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
-        end_time=datetime(2025, 1, 1, 0, 0, 1, tzinfo=timezone.utc),
+        start_time=datetime(2025, 1, 1, 0, 0, 0, tzinfo=UTC),
+        end_time=datetime(2025, 1, 1, 0, 0, 1, tzinfo=UTC),
         src_bytes=10000,
         dst_bytes=10000,
         syn_count=0,

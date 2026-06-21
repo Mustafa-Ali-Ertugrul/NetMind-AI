@@ -13,7 +13,6 @@ import logging
 import math
 from collections import deque
 from dataclasses import dataclass
-from typing import cast
 
 logger = logging.getLogger("netmind.live_engine.adaptive")
 

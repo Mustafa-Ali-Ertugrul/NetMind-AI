@@ -14,11 +14,15 @@ from httpx import ASGITransport, AsyncClient
 
 from backend.api.app import create_app
 from backend.api.dependencies import get_db_session
+from backend.config import get_settings
 
 
 @pytest.fixture(name="app")
-def _app() -> FastAPI:
+def _app(tmp_path, monkeypatch) -> FastAPI:
     """Return a bare-bones app instance (lifespan skipped via override approach)."""
+    monkeypatch.setenv("UPLOAD_DIR", str(tmp_path / "pcaps"))
+    monkeypatch.setenv("ARTIFACT_STORAGE_PATH", str(tmp_path / "artifacts"))
+    get_settings.cache_clear()
     return create_app()
 
 

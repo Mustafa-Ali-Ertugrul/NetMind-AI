@@ -1,9 +1,6 @@
 """Abstract base class for all detection rules."""
 
 from abc import ABC, abstractmethod
-from ipaddress import IPv4Address, IPv6Address
-from math import log10
-from uuid import UUID
 
 from backend.contracts.enums import Confidence, Severity
 from backend.contracts.features import AggregatedFeatures

@@ -1,7 +1,7 @@
 """SQLAlchemy async engine and session factory."""
 
-from collections.abc import AsyncGenerator
 import os
+from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
-from sqlalchemy import text
 
 from backend.config import get_settings
 
@@ -52,8 +51,8 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 async def init_db() -> None:
     """Apply all pending Alembic migrations."""
-    import alembic.config
     import alembic.command
+    import alembic.config
 
     ini_path = os.path.join(os.path.dirname(__file__), "..", "alembic.ini")
     alembic_cfg = alembic.config.Config(ini_path)

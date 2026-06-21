@@ -54,7 +54,7 @@ class TestLiveTalkerAggregator:
     async def test_returns_src_and_dst_talkers(self):
         db = AsyncMock()
 
-        pcap_id = uuid4()
+        uuid4()
 
         db.execute.side_effect = [
             _MockResult(  # src rows

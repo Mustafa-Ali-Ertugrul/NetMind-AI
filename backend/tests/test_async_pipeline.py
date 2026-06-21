@@ -23,7 +23,6 @@ from backend.contracts.findings import Finding, OverallRiskScore
 from backend.worker import celery_app
 from backend.worker.tasks.pcap_analysis import analyze_pcap_task
 
-
 # ---------------------------------------------------------------------------
 # Celery app configuration
 # ---------------------------------------------------------------------------
@@ -284,7 +283,7 @@ class TestAnalyzeTaskFailures:
             assert pcap.status == "failed"
 
     def test_file_missing_marks_job_failed(self, sync_db_session, tmp_path):
-        from backend.storage.models import AnalysisJob, PcapFile
+        from backend.storage.models import AnalysisJob
 
         SessionLocal = sync_db_session
 
@@ -305,7 +304,7 @@ class TestAnalyzeTaskFailures:
             )
 
     def test_unhandled_exception_marks_job_failed(self, sync_db_session, tmp_path):
-        from backend.storage.models import AnalysisJob, PcapFile
+        from backend.storage.models import AnalysisJob
 
         SessionLocal = sync_db_session
         (tmp_path / "ab").mkdir()

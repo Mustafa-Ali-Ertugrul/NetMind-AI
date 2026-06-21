@@ -4,7 +4,6 @@ Flags suspicious HTTP behavior: high error ratios, malicious
 user-agents, and single-URI scanning patterns.
 """
 
-from backend.contracts.enums import Confidence, Severity
 from backend.contracts.features import AggregatedFeatures
 from backend.contracts.findings import Evidence, Finding
 from backend.rule_engine.base_rule import BaseDetectionRule

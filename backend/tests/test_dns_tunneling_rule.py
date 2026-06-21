@@ -1,6 +1,6 @@
 """Tests for DNSTunnelingRule."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from backend.contracts.enums import Severity
@@ -24,7 +24,7 @@ def _make_baseline() -> TrafficBaseline:
 def _make_features(
     dns_profiles: list[DNSProfile] | None = None,
 ) -> AggregatedFeatures:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return AggregatedFeatures(
         pcap_id=uuid4(),
         capture_duration_seconds=10.0,

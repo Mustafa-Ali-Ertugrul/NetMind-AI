@@ -1,7 +1,17 @@
 """Shared test fixtures and mock tshark JSON data."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from ipaddress import IPv4Address
+from uuid import UUID, uuid4
 
+from backend.contracts.enums import Protocol
+from backend.contracts.parser_output import (
+    ParsedDNS,
+    ParsedFTP,
+    ParsedHTTP,
+    ParsedPacket,
+    ParsedSMTP,
+)
 
 DNS_QUERY_PACKET = {
     "_source": {
@@ -312,23 +322,10 @@ ICMP_RESPONSE_PACKET = {
 
 def make_expected_timestamp(epoch_str: str) -> datetime:
     """Convert tshark epoch string to datetime."""
-    return datetime.fromtimestamp(float(epoch_str), tz=timezone.utc)
+    return datetime.fromtimestamp(float(epoch_str), tz=UTC)
 
 
 # ── ParsedProtocols builder helpers ──────────────────────────────────────────
-
-from uuid import UUID, uuid4
-from ipaddress import IPv4Address, IPv6Address
-from backend.contracts.parser_output import (
-    ParsedPacket,
-    ParsedDNS,
-    ParsedHTTP,
-    ParsedFTP,
-    ParsedSMTP,
-    ParsedProtocols,
-)
-from backend.contracts.enums import Protocol
-
 
 def make_parsed_packet(
     *,

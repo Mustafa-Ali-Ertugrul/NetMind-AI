@@ -14,12 +14,12 @@ Provides:
     - FeatureExtractor: orchestrator tying all builders together
 """
 
-from .extractor import FeatureExtractor, extract_features
-from .flow_builder import FlowBuilder
 from .connection_profiles import ConnectionProfileBuilder
 from .dns_profiles import DNSProfileBuilder
-from .http_summary import HTTPSummaryBuilder
+from .extractor import FeatureExtractor, extract_features
+from .flow_builder import FlowBuilder
 from .ftp_summary import FTPSummaryBuilder
+from .http_summary import HTTPSummaryBuilder
 from .smtp_summary import SMTPSummaryBuilder
 from .traffic_baseline import TrafficBaselineComputer
 

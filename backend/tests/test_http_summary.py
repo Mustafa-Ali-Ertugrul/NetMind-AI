@@ -1,8 +1,8 @@
 """Tests for HTTPSummaryBuilder."""
 
-import pytest
 
 from backend.feature_extractor.http_summary import HTTPSummaryBuilder
+
 from .fixtures import make_parsed_http
 
 

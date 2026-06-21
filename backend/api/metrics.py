@@ -1,9 +1,9 @@
 """Prometheus metrics exports for the API layer."""
 
 from fastapi import Request, Response
-from prometheus_client import Counter, Histogram, Gauge, generate_latest, REGISTRY
-from starlette.responses import Response as StarletteResponse
+from prometheus_client import REGISTRY, Counter, Gauge, Histogram, generate_latest
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response as StarletteResponse
 
 request_count = Counter(
     "netmind_http_requests_total",

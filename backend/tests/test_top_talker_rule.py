@@ -1,6 +1,6 @@
 """Tests for NET-008 Top Talker Detection Rule."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from ipaddress import IPv4Address
 
 from backend.contracts.features import AggregatedFeatures, FlowRecord
@@ -19,8 +19,8 @@ def _make_flow(bytes_total: int, packets: int = 10) -> FlowRecord:
         packets_total=packets,
         bytes_total=bytes_total,
         duration_ms=1000,
-        start_time=datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
-        end_time=datetime(2025, 1, 1, 0, 0, 1, tzinfo=timezone.utc),
+        start_time=datetime(2025, 1, 1, 0, 0, 0, tzinfo=UTC),
+        end_time=datetime(2025, 1, 1, 0, 0, 1, tzinfo=UTC),
         src_bytes=bytes_total // 2,
         dst_bytes=bytes_total // 2,
         syn_count=0,
@@ -35,8 +35,8 @@ def _make_features(flows: list[FlowRecord], total_bytes: int) -> AggregatedFeatu
     return AggregatedFeatures(
         pcap_id="00000000-0000-0000-0000-000000000000",
         capture_duration_seconds=1.0,
-        time_window_start=datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
-        time_window_end=datetime(2025, 1, 1, 0, 0, 1, tzinfo=timezone.utc),
+        time_window_start=datetime(2025, 1, 1, 0, 0, 0, tzinfo=UTC),
+        time_window_end=datetime(2025, 1, 1, 0, 0, 1, tzinfo=UTC),
         traffic_baseline={
             "expected_bytes_per_second": 1000.0,
             "expected_packets_per_second": 10.0,

@@ -1,8 +1,8 @@
 """Tests for SMTPSummaryBuilder."""
 
-import pytest
 
 from backend.feature_extractor.smtp_summary import SMTPSummaryBuilder
+
 from .fixtures import make_parsed_smtp
 
 

@@ -1,13 +1,13 @@
 """Tests for the FlowBuilder."""
 
-import pytest
-from datetime import datetime, timezone
 from ipaddress import IPv4Address
 from uuid import UUID
 
+import pytest
+
 from backend.contracts.enums import Protocol
 from backend.feature_extractor.flow_builder import FlowBuilder, _flow_key
-from backend.feature_extractor.constants import FAILURE_PAYLOAD_BYTES_THRESHOLD
+
 from .fixtures import make_parsed_packet
 
 TEST_PCAP = UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")

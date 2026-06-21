@@ -8,20 +8,20 @@ Orchestrates streaming PCAP parsing by:
 """
 
 import time
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
 from uuid import UUID
 
 from backend.contracts.parser_output import ParsedPacket, ParsedProtocols
 
-from .tshark_wrapper import TsharkWrapper, TsharkError
 from .parsers.dns import parse_dns_packet
-from .parsers.http import parse_http_packet
 from .parsers.ftp import parse_ftp_packet
+from .parsers.http import parse_http_packet
+from .parsers.icmp import parse_icmp_packet
 from .parsers.smtp import parse_smtp_packet
 from .parsers.tcp import parse_tcp_packet
 from .parsers.udp import parse_udp_packet
-from .parsers.icmp import parse_icmp_packet
+from .tshark_wrapper import TsharkWrapper
 
 PARSER_VERSION = "2.0.0"
 

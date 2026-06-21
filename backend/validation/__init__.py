@@ -16,7 +16,7 @@ report with per-rule precision, recall, F1, and performance metrics.
 """
 
 from .aggregate import MetricCalculator
-from .label_store import LabelStore, GroundTruth
+from .label_store import GroundTruth, LabelStore
 from .report import ReportWriter
 from .runner import ValidationRunner
 

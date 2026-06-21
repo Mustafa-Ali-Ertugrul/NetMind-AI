@@ -7,11 +7,10 @@ Aggregates packets and flows to compute:
 """
 
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from ipaddress import IPv4Address, IPv6Address
 
 from backend.contracts.features import ConnectionProfile
-from backend.contracts.enums import Protocol
 from backend.contracts.parser_output import ParsedPacket
 
 from .constants import PORT_SCAN_PORT_THRESHOLD, PORT_SCAN_RATIO_THRESHOLD
@@ -55,9 +54,9 @@ class ConnectionProfileBuilder:
             # Timestamps
             timestamps = [p.timestamp for p in packets if p.timestamp is not None]
             first_seen = (
-                min(timestamps) if timestamps else datetime.min.replace(tzinfo=timezone.utc)
+                min(timestamps) if timestamps else datetime.min.replace(tzinfo=UTC)
             )
-            last_seen = max(timestamps) if timestamps else datetime.min.replace(tzinfo=timezone.utc)
+            last_seen = max(timestamps) if timestamps else datetime.min.replace(tzinfo=UTC)
 
             for p in packets:
                 dst_ips.add(str(p.dst_ip))

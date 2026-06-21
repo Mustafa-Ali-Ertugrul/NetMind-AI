@@ -6,7 +6,6 @@ database operations, and lifecycle policies.
 
 from __future__ import annotations
 
-import json
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -22,8 +21,8 @@ from backend.storage.exceptions import (
     DiskFullError,
     PcapNotFoundError,
 )
-from backend.storage.models import AiAssessment, Alert, AnalysisJob, PcapFile
-from backend.storage.object_store import get_object_store, ObjectStore
+from backend.storage.models import AnalysisJob, PcapFile
+from backend.storage.object_store import get_object_store
 from backend.storage.schemas import (
     ArtifactInfo,
     CleanupResult,
@@ -176,8 +175,8 @@ class StorageService:
         target = (base / filename).resolve()
         try:
             target.relative_to(base)
-        except ValueError:
-            raise ArtifactNotFoundError(f"Invalid artifact path: {filename}")
+        except ValueError as exc:
+            raise ArtifactNotFoundError(f"Invalid artifact path: {filename}") from exc
         if not target.exists() or not target.is_file():
             raise ArtifactNotFoundError(f"Artifact {filename} not found for job {job_id}")
         return target

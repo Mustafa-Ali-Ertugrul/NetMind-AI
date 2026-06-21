@@ -1,8 +1,8 @@
 """Tests for FTPSummaryBuilder."""
 
-import pytest
 
 from backend.feature_extractor.ftp_summary import FTPSummaryBuilder
+
 from .fixtures import make_parsed_ftp
 
 

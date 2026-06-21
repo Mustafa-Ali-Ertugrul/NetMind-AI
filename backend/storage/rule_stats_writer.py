@@ -8,9 +8,9 @@ into ``StreamingRuleEngine``.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Iterable
+from collections.abc import Iterable
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -108,7 +108,7 @@ class RuleStatsWriter:
         session_id: UUID | None,
     ) -> None:
         """Find existing row or create a new one, then update stats."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         row: RuleStats | None = (
             self._db.query(RuleStats)

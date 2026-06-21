@@ -1,6 +1,6 @@
 """Tests for NET-005 SYN Flood Detection Rule."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from ipaddress import IPv4Address
 
 from backend.contracts.features import AggregatedFeatures, FlowRecord
@@ -21,8 +21,8 @@ def _make_flow(
         packets_total=total_pkts or syn + ack,
         bytes_total=1000,
         duration_ms=duration_ms,
-        start_time=datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
-        end_time=datetime(2025, 1, 1, 0, 0, 1, tzinfo=timezone.utc),
+        start_time=datetime(2025, 1, 1, 0, 0, 0, tzinfo=UTC),
+        end_time=datetime(2025, 1, 1, 0, 0, 1, tzinfo=UTC),
         src_bytes=500,
         dst_bytes=500,
         syn_count=syn,
@@ -37,8 +37,8 @@ def _make_features(flows: list[FlowRecord]) -> AggregatedFeatures:
     return AggregatedFeatures(
         pcap_id="00000000-0000-0000-0000-000000000000",
         capture_duration_seconds=1.0,
-        time_window_start=datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
-        time_window_end=datetime(2025, 1, 1, 0, 0, 1, tzinfo=timezone.utc),
+        time_window_start=datetime(2025, 1, 1, 0, 0, 0, tzinfo=UTC),
+        time_window_end=datetime(2025, 1, 1, 0, 0, 1, tzinfo=UTC),
         traffic_baseline={
             "expected_bytes_per_second": 1000.0,
             "expected_packets_per_second": 10.0,

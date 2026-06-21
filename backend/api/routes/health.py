@@ -2,14 +2,13 @@
 
 from datetime import datetime
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.api.dependencies import get_db_session
 from backend.api.schemas import HealthResponse
 from backend.config import get_settings
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Depends
 
 router = APIRouter(tags=["health"])
 

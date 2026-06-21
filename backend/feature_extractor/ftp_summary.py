@@ -1,9 +1,8 @@
 """FTP summary builder: per-IP auth rate and command counts."""
 
-from collections import defaultdict
 
-from backend.contracts.parser_output import ParsedFTP
 from backend.contracts.features import FTPFlow
+from backend.contracts.parser_output import ParsedFTP
 
 
 class FTPSummaryBuilder:

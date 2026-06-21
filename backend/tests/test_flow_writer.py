@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from ipaddress import IPv4Address
-from unittest.mock import MagicMock, call
-from uuid import UUID, uuid4
-
-import pytest
+from unittest.mock import MagicMock
+from uuid import UUID
 
 from backend.contracts.features import AggregatedFeatures, FlowRecord, TrafficBaseline
 from backend.storage.flow_writer import write_flows_from_features
@@ -26,8 +24,8 @@ def _make_flow_record(**kwargs) -> FlowRecord:
         packets_total=10,
         bytes_total=1000,
         duration_ms=500.0,
-        start_time=datetime(2024, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
-        end_time=datetime(2024, 1, 1, 0, 0, 1, tzinfo=timezone.utc),
+        start_time=datetime(2024, 1, 1, 0, 0, 0, tzinfo=UTC),
+        end_time=datetime(2024, 1, 1, 0, 0, 1, tzinfo=UTC),
         src_bytes=600,
         dst_bytes=400,
         syn_count=1,
@@ -59,8 +57,8 @@ class TestFlowWriter:
         features = AggregatedFeatures(
             pcap_id=TEST_PCAP,
             capture_duration_seconds=0.0,
-            time_window_start=datetime.now(timezone.utc),
-            time_window_end=datetime.now(timezone.utc),
+            time_window_start=datetime.now(UTC),
+            time_window_end=datetime.now(UTC),
             traffic_baseline=baseline,
             flows=[],
             extractor_version="test",
@@ -86,8 +84,8 @@ class TestFlowWriter:
         features = AggregatedFeatures(
             pcap_id=TEST_PCAP,
             capture_duration_seconds=1.0,
-            time_window_start=datetime.now(timezone.utc),
-            time_window_end=datetime.now(timezone.utc),
+            time_window_start=datetime.now(UTC),
+            time_window_end=datetime.now(UTC),
             traffic_baseline=baseline,
             flows=[record],
             extractor_version="test",
@@ -123,8 +121,8 @@ class TestFlowWriter:
         features = AggregatedFeatures(
             pcap_id=TEST_PCAP,
             capture_duration_seconds=1.0,
-            time_window_start=datetime.now(timezone.utc),
-            time_window_end=datetime.now(timezone.utc),
+            time_window_start=datetime.now(UTC),
+            time_window_end=datetime.now(UTC),
             traffic_baseline=baseline,
             flows=flows,
             extractor_version="test",
@@ -157,8 +155,8 @@ class TestFlowWriter:
         features = AggregatedFeatures(
             pcap_id=TEST_PCAP,
             capture_duration_seconds=1.0,
-            time_window_start=datetime.now(timezone.utc),
-            time_window_end=datetime.now(timezone.utc),
+            time_window_start=datetime.now(UTC),
+            time_window_end=datetime.now(UTC),
             traffic_baseline=baseline,
             flows=[record],
             extractor_version="test",

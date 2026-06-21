@@ -1,17 +1,16 @@
 """Tests for RuleEngine orchestrator and OverallRiskScore."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from ipaddress import IPv4Address
 from uuid import uuid4
 
-from ipaddress import IPv4Address
-
-from backend.contracts.enums import RiskLabel, Severity
+from backend.contracts.enums import RiskLabel
 from backend.contracts.features import (
     AggregatedFeatures,
     ConnectionProfile,
     DNSProfile,
-    FTPFlow,
     FlowRecord,
+    FTPFlow,
     SMTPFlow,
     TrafficBaseline,
 )
@@ -33,7 +32,7 @@ def _make_baseline() -> TrafficBaseline:
 
 
 def _make_empty_features() -> AggregatedFeatures:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return AggregatedFeatures(
         pcap_id=uuid4(),
         capture_duration_seconds=10.0,
@@ -47,7 +46,7 @@ def _make_empty_features() -> AggregatedFeatures:
 
 def _make_attack_features() -> AggregatedFeatures:
     """Build a feature set that triggers the full built-in demo rule set."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     pcap_id = uuid4()
 
     return AggregatedFeatures(

@@ -12,7 +12,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.dialects.postgresql import INET, JSONB, UUID as PG_UUID
+from sqlalchemy.dialects.postgresql import INET, JSONB
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.ext.compiler import compiles
 
 from backend.api.app import app

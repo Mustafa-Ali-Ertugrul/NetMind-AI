@@ -22,15 +22,12 @@ import pytest
 
 from backend.ai_assessor import AIAssessor, AssessorConfig
 from backend.ai_assessor.exceptions import (
-    InvalidResponseError,
     ProviderUnavailableError,
 )
 from backend.ai_assessor.providers import BaseProvider, OllamaProvider
 from backend.ai_assessor.providers.base import BaseProvider as BaseProviderABC
 from backend.contracts.ai_output import (
     AIAssessment,
-    FindingRationale,
-    RemediationStep,
     SecurityReport,
 )
 from backend.contracts.enums import Confidence, RiskLabel, Severity

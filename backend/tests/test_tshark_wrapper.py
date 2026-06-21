@@ -1,9 +1,10 @@
 """Tests for the TsharkWrapper class."""
 
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from backend.protocol_parser.tshark_wrapper import TsharkWrapper, TsharkError, TsharkVersion
+import pytest
+
+from backend.protocol_parser.tshark_wrapper import TsharkError, TsharkVersion, TsharkWrapper
 
 
 class TestTsharkVersion:

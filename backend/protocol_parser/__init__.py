@@ -5,14 +5,14 @@ for memory-efficient processing of large capture files.
 """
 
 from .parser import ProtocolParser, parse_pcap
-from .tshark_wrapper import TsharkWrapper, TsharkError
 from .parsers.dns import parse_dns_packet
-from .parsers.http import parse_http_packet
 from .parsers.ftp import parse_ftp_packet
+from .parsers.http import parse_http_packet
+from .parsers.icmp import parse_icmp_packet
 from .parsers.smtp import parse_smtp_packet
 from .parsers.tcp import parse_tcp_packet
 from .parsers.udp import parse_udp_packet
-from .parsers.icmp import parse_icmp_packet
+from .tshark_wrapper import TsharkError, TsharkWrapper
 
 __all__ = [
     "ProtocolParser",

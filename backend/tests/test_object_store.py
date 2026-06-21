@@ -2,20 +2,17 @@
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
-from uuid import uuid4
-
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
+
+from backend.config import Settings
 from backend.storage.object_store import (
     LocalObjectStore,
-    ObjectStore,
     S3ObjectStore,
     get_object_store,
 )
-from backend.config import Settings
 
 
 class TestLocalObjectStore:

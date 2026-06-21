@@ -1,9 +1,10 @@
 """HTTP summary builder: method/status counts, top URIs, user agents."""
 
-from collections import Counter, defaultdict
+from collections import Counter
 from urllib.parse import urlparse
 
 from backend.contracts.parser_output import ParsedHTTP
+
 from .constants import TOP_HTTP_URIS
 
 

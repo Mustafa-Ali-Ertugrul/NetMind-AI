@@ -4,12 +4,13 @@ import pytest
 
 from backend.feature_extractor.dns_profiles import (
     DNSProfileBuilder,
-    _shannon_entropy,
-    _subdomain_entropy,
     _get_domain,
     _get_subdomain,
     _is_base64_like,
+    _shannon_entropy,
+    _subdomain_entropy,
 )
+
 from .fixtures import make_parsed_dns
 
 

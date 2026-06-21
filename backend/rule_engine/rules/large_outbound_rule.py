@@ -4,11 +4,11 @@ Detects single flows exceeding a size threshold to non-RFC1918
 destinations — a common data exfiltration / DLP indicator.
 """
 
-from ipaddress import IPv4Address, IPv6Address, ip_address
+from ipaddress import IPv4Address, IPv6Address
 
-from backend.contracts.enums import Confidence, Severity
+from backend.contracts.enums import Confidence
 from backend.contracts.features import AggregatedFeatures
-from backend.contracts.findings import Evidence, Finding
+from backend.contracts.findings import Finding
 from backend.rule_engine.base_rule import BaseDetectionRule
 from backend.rule_engine.thresholds import (
     LARGE_OUTBOUND_MIN_BYTES,

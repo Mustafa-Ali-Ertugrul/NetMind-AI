@@ -1,7 +1,7 @@
 """Analytics aggregators — per-PCAP and global aggregations."""
 
-from .talkers import TopTalkerAggregator
 from .protocols import ProtocolDistributionAggregator
+from .talkers import TopTalkerAggregator
 from .timeline import TimelineAggregator
 
 __all__ = [

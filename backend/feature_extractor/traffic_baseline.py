@@ -5,12 +5,11 @@ Computes:
     - TrafficDeviation: per-flow deviation from baseline for top talkers
 """
 
-from datetime import datetime, timezone
-from ipaddress import IPv4Address, IPv6Address
 
+from backend.contracts.features import FlowRecord, TrafficBaseline, TrafficDeviation
 from backend.contracts.parser_output import ParsedPacket
-from backend.contracts.features import TrafficBaseline, TrafficDeviation, FlowRecord
-from .constants import TOP_FLOW_DEVIATIONS, BURST_MULTIPLIER
+
+from .constants import TOP_FLOW_DEVIATIONS
 
 
 class TrafficBaselineComputer:

@@ -8,9 +8,9 @@ into ``StreamingRuleEngine``.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Iterable
+from collections.abc import Iterable
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -111,7 +111,7 @@ class LiveAlertWriter:
             ],
         }
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         return LiveAlert(
             session_id=kwargs.get("session_id", finding.pcap_id),

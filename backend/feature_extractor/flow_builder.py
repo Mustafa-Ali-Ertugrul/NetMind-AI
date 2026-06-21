@@ -5,11 +5,10 @@ so that A->B and B->A traffic merge into a single bidirectional flow record.
 """
 
 from datetime import datetime
-from ipaddress import IPv4Address, IPv6Address
 
-from backend.contracts.parser_output import ParsedPacket
 from backend.contracts.enums import Protocol
 from backend.contracts.features import FlowRecord
+from backend.contracts.parser_output import ParsedPacket
 
 from .constants import FAILURE_PAYLOAD_BYTES_THRESHOLD
 

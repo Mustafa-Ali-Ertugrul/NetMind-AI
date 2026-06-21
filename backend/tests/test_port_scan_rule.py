@@ -1,9 +1,8 @@
 """Tests for PortScanRule."""
 
-from datetime import datetime, timezone
-from uuid import uuid4
-
+from datetime import UTC, datetime
 from ipaddress import IPv4Address
+from uuid import uuid4
 
 from backend.contracts.enums import Severity
 from backend.contracts.features import AggregatedFeatures, ConnectionProfile, TrafficBaseline
@@ -26,7 +25,7 @@ def _make_baseline() -> TrafficBaseline:
 def _make_features(
     profiles: list[ConnectionProfile] | None = None,
 ) -> AggregatedFeatures:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return AggregatedFeatures(
         pcap_id=uuid4(),
         capture_duration_seconds=10.0,
@@ -58,8 +57,8 @@ class TestPortScanRule:
             success_connections=10,
             total_bytes_sent=1000,
             total_packets_sent=10,
-            first_seen=datetime.now(timezone.utc),
-            last_seen=datetime.now(timezone.utc),
+            first_seen=datetime.now(UTC),
+            last_seen=datetime.now(UTC),
             distinct_protocols=["TCP"],
             port_scan_suspect=False,
         )
@@ -78,8 +77,8 @@ class TestPortScanRule:
             success_connections=10,
             total_bytes_sent=5000,
             total_packets_sent=50,
-            first_seen=datetime(2024, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
-            last_seen=datetime(2024, 1, 1, 0, 0, 10, tzinfo=timezone.utc),
+            first_seen=datetime(2024, 1, 1, 0, 0, 0, tzinfo=UTC),
+            last_seen=datetime(2024, 1, 1, 0, 0, 10, tzinfo=UTC),
             distinct_protocols=["TCP"],
             failed_connection_ratio=0.8,
             port_scan_suspect=True,
@@ -112,8 +111,8 @@ class TestPortScanRule:
             success_connections=10,
             total_bytes_sent=5000,
             total_packets_sent=100,
-            first_seen=datetime(2024, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
-            last_seen=datetime(2024, 1, 1, 0, 0, 10, tzinfo=timezone.utc),
+            first_seen=datetime(2024, 1, 1, 0, 0, 0, tzinfo=UTC),
+            last_seen=datetime(2024, 1, 1, 0, 0, 10, tzinfo=UTC),
             distinct_protocols=["TCP"],
             failed_connection_ratio=0.9,
             port_scan_suspect=True,
@@ -150,8 +149,8 @@ class TestPortScanRule:
             success_connections=5,
             total_bytes_sent=2000,
             total_packets_sent=30,
-            first_seen=datetime(2024, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
-            last_seen=datetime(2024, 1, 1, 0, 0, 5, tzinfo=timezone.utc),
+            first_seen=datetime(2024, 1, 1, 0, 0, 0, tzinfo=UTC),
+            last_seen=datetime(2024, 1, 1, 0, 0, 5, tzinfo=UTC),
             distinct_protocols=["TCP"],
             failed_connection_ratio=0.83,
             port_scan_suspect=True,
@@ -185,8 +184,8 @@ class TestPortScanRule:
             success_connections=10,
             total_bytes_sent=4000,
             total_packets_sent=40,
-            first_seen=datetime(2024, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
-            last_seen=datetime(2024, 1, 1, 0, 0, 5, tzinfo=timezone.utc),
+            first_seen=datetime(2024, 1, 1, 0, 0, 0, tzinfo=UTC),
+            last_seen=datetime(2024, 1, 1, 0, 0, 5, tzinfo=UTC),
             distinct_protocols=["TCP"],
             failed_connection_ratio=0.75,
             port_scan_suspect=True,
@@ -212,8 +211,8 @@ class TestPortScanRule:
             success_connections=5,
             total_bytes_sent=5000,
             total_packets_sent=100,
-            first_seen=datetime(2024, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
-            last_seen=datetime(2024, 1, 1, 0, 0, 10, tzinfo=timezone.utc),
+            first_seen=datetime(2024, 1, 1, 0, 0, 0, tzinfo=UTC),
+            last_seen=datetime(2024, 1, 1, 0, 0, 10, tzinfo=UTC),
             distinct_protocols=["TCP"],
             failed_connection_ratio=0.95,
             port_scan_suspect=True,

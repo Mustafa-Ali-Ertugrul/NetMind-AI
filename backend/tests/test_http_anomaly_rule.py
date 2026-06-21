@@ -1,7 +1,6 @@
 """Tests for NET-006 HTTP Anomaly Detection Rule."""
 
-from datetime import datetime, timezone
-from ipaddress import IPv4Address
+from datetime import UTC, datetime
 
 from backend.contracts.features import AggregatedFeatures, FlowRecord
 from backend.rule_engine.rules.http_anomaly_rule import HTTPAnomalyRule
@@ -18,8 +17,8 @@ def _make_features(
     return AggregatedFeatures(
         pcap_id="00000000-0000-0000-0000-000000000000",
         capture_duration_seconds=1.0,
-        time_window_start=datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
-        time_window_end=datetime(2025, 1, 1, 0, 0, 1, tzinfo=timezone.utc),
+        time_window_start=datetime(2025, 1, 1, 0, 0, 0, tzinfo=UTC),
+        time_window_end=datetime(2025, 1, 1, 0, 0, 1, tzinfo=UTC),
         traffic_baseline={
             "expected_bytes_per_second": 1000.0,
             "expected_packets_per_second": 10.0,
