@@ -21,11 +21,8 @@ from httpx import ASGITransport, AsyncClient
 
 from backend.api.app import create_app
 from backend.api.dependencies import get_db_session
-from backend.api.schemas import IngestEventRequest, LiveAlertResponse
-from backend.ingestion.event import FlowEvent
 from backend.live_engine.service import LiveEngineService, ServiceMetrics
 from backend.storage.models import LiveAlert
-
 
 # ── Helpers ─────────────────────────────────────────────────────────────
 

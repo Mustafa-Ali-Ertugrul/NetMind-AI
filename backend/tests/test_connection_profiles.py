@@ -1,9 +1,11 @@
 """Tests for ConnectionProfileBuilder."""
 
-import pytest
 from ipaddress import IPv4Address
 
+import pytest
+
 from backend.feature_extractor.connection_profiles import ConnectionProfileBuilder
+
 from .fixtures import make_parsed_packet
 
 TEST_PCAP = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"

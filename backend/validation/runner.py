@@ -12,32 +12,19 @@ and memory usage are recorded per PCAP.  Results are written to the
 output directory as per-PCAP JSON + Markdown, plus an aggregate report.
 """
 
-from __future__ import annotations
-
-import sys
-from pathlib import Path
-
-# Ensure the project root (NetMind-AI/) is on sys.path so that
-# ``from backend.xxx`` resolves regardless of how this module was loaded.
-_project_root = Path(__file__).resolve().parent.parent.parent
-if str(_project_root) not in sys.path:
-    sys.path.insert(0, str(_project_root))
-
 import argparse
 import logging
 import os
-import shutil
+import sys
 import time
 import tracemalloc
 from hashlib import sha256
-from typing import Any
+from pathlib import Path
 from uuid import UUID
 
 from backend.contracts.features import AggregatedFeatures
-from backend.contracts.findings import Finding, OverallRiskScore
 from backend.contracts.parser_output import ParsedProtocols
-
-from backend.feature_extractor import FeatureExtractor, extract_features
+from backend.feature_extractor import FeatureExtractor
 from backend.protocol_parser import ProtocolParser, TsharkError
 from backend.rule_engine import RuleEngine
 

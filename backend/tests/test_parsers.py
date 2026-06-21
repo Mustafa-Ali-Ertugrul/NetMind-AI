@@ -1,39 +1,37 @@
 """Tests for individual protocol parsers."""
 
-import pytest
-from uuid import UUID
-from datetime import datetime, timezone
 from ipaddress import IPv4Address
+from uuid import UUID
 
+from backend.contracts.enums import Protocol
 from backend.contracts.parser_output import (
     ParsedDNS,
-    ParsedHTTP,
     ParsedFTP,
-    ParsedSMTP,
+    ParsedHTTP,
     ParsedPacket,
+    ParsedSMTP,
 )
-from backend.contracts.enums import Protocol
 from backend.protocol_parser.parsers.dns import parse_dns_packet
-from backend.protocol_parser.parsers.http import parse_http_packet
 from backend.protocol_parser.parsers.ftp import parse_ftp_packet
+from backend.protocol_parser.parsers.http import parse_http_packet
+from backend.protocol_parser.parsers.icmp import parse_icmp_packet
 from backend.protocol_parser.parsers.smtp import parse_smtp_packet
 from backend.protocol_parser.parsers.tcp import parse_tcp_packet
 from backend.protocol_parser.parsers.udp import parse_udp_packet
-from backend.protocol_parser.parsers.icmp import parse_icmp_packet
 
 from .fixtures import (
     DNS_QUERY_PACKET,
     DNS_RESPONSE_PACKET,
-    HTTP_REQUEST_PACKET,
-    HTTP_RESPONSE_PACKET,
     FTP_COMMAND_PACKET,
     FTP_RESPONSE_PACKET,
+    HTTP_REQUEST_PACKET,
+    HTTP_RESPONSE_PACKET,
+    ICMP_PACKET,
+    ICMP_RESPONSE_PACKET,
     SMTP_COMMAND_PACKET,
     SMTP_RESPONSE_PACKET,
     TCP_PACKET,
     UDP_PACKET,
-    ICMP_PACKET,
-    ICMP_RESPONSE_PACKET,
     make_expected_timestamp,
 )
 

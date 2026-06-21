@@ -7,7 +7,6 @@ packet sizes and sufficient packet counts.
 
 from ipaddress import IPv4Address, IPv6Address
 
-from backend.contracts.enums import Confidence, Severity
 from backend.contracts.features import AggregatedFeatures
 from backend.contracts.findings import Evidence, Finding
 from backend.rule_engine.base_rule import BaseDetectionRule
@@ -86,7 +85,7 @@ class BeaconingRule(BaseDetectionRule):
             risk = self._compute_risk_score(raw_score)
             src_ip = str(flow.src_ip)
             dst_ip = str(flow.dst_ip)
-            src_addr = IPv4Address(src_ip) if "." in src_ip else IPv6Address(src_ip)
+            IPv4Address(src_ip) if "." in src_ip else IPv6Address(src_ip)
 
             findings.append(
                 Finding(

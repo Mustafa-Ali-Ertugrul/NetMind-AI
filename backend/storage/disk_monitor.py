@@ -7,7 +7,7 @@ import logging
 import os
 import platform
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,8 @@ def _get_disk_usage_win32(path: str) -> tuple[int, int, int]:
     """Get disk usage on Windows via GetDiskFreeSpaceExW."""
     free_bytes = ctypes.c_ulonglong(0)
     total_bytes = ctypes.c_ulonglong(0)
-    ctypes.windll.kernel32.GetDiskFreeSpaceExW(
+    windll = cast(Any, ctypes).windll
+    windll.kernel32.GetDiskFreeSpaceExW(
         ctypes.c_wchar_p(path),
         None,
         ctypes.byref(total_bytes),

@@ -2,8 +2,7 @@
 
 from pathlib import Path
 
-import pytest
-
+import backend.storage.disk_monitor as disk_monitor
 from backend.storage.disk_monitor import DiskMonitor
 
 
@@ -45,9 +44,12 @@ def test_available_bytes_returns_positive(tmp_path: Path):
     assert monitor.available_bytes > 0
 
 
-def test_get_usage_graceful_on_inaccessible_path():
-    # A path that is unlikely to exist and cannot be created
-    monitor = DiskMonitor(path=Path(r"\\.\NonExistentVolume\path"))
+def test_get_usage_graceful_on_inaccessible_path(tmp_path: Path, monkeypatch):
+    def raise_os_error(path: str):
+        raise OSError(f"Cannot stat {path}")
+
+    monkeypatch.setattr(disk_monitor, "_get_disk_usage", raise_os_error)
+    monitor = DiskMonitor(path=tmp_path)
     usage = monitor.get_usage()
     # Should return zeros with error, not crash
     assert usage["total_gb"] == 0.0

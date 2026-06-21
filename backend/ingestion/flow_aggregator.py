@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from ipaddress import IPv4Address, IPv6Address
 from time import monotonic
 
 from backend.contracts.features import FlowRecord

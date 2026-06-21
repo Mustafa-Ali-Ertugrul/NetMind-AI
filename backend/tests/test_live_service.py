@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from ipaddress import IPv4Address
 from uuid import UUID, uuid4
 
 import pytest
@@ -9,7 +10,6 @@ import pytest
 from backend.ingestion.event import FlowEvent
 from backend.live_engine.provider import GlobalEngineProvider
 from backend.live_engine.service import LiveEngineService
-from ipaddress import IPv4Address
 
 
 def _make_event(

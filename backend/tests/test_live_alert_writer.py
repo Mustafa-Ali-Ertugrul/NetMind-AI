@@ -1,10 +1,10 @@
 """Tests for LiveAlertWriter — persisting findings to ``live_alerts``."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from backend.contracts.enums import Confidence, Severity
@@ -26,7 +26,7 @@ def db_session():
 
 def _make_finding(**overrides) -> Finding:
     """Helper to create a Finding with sensible defaults."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     defaults = dict(
         pcap_id=uuid4(),
         rule_id="NET-001",
@@ -77,7 +77,7 @@ class TestLiveAlertWriter:
 
     def test_write_alert_persists_all_fields(self, db_session):
         writer = LiveAlertWriter(db_session)
-        now = datetime.now(timezone.utc)
+        datetime.now(UTC)
         finding = _make_finding(
             rule_id="NET-005",
             severity=Severity.CRITICAL,

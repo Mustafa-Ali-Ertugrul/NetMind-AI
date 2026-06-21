@@ -6,15 +6,11 @@ Detects credentials transmitted over cleartext (non-TLS) protocols:
   - HTTP login pages served over plain HTTP (no TLS)
 """
 
-from ipaddress import IPv4Address, IPv6Address
 
-from backend.contracts.enums import Confidence, Severity
 from backend.contracts.features import AggregatedFeatures
 from backend.contracts.findings import Evidence, Finding
 from backend.rule_engine.base_rule import BaseDetectionRule
 from backend.rule_engine.thresholds import (
-    CLEARTEXT_HTTP_PORT_MAX,
-    CLEARTEXT_HTTP_PORT_MIN,
     CLEARTEXT_LOGIN_URI_KEYWORDS,
 )
 
@@ -70,7 +66,7 @@ class CleartextCredentialsRule(BaseDetectionRule):
 
         # ── HTTP login pages over plaintext ──────────────────────────
         http_login_uris: list[str] = []
-        for uri, count in features.http_top_uris:
+        for uri, _count in features.http_top_uris:
             lower = uri.lower()
             if any(kw in lower for kw in CLEARTEXT_LOGIN_URI_KEYWORDS):
                 http_login_uris.append(uri)

@@ -1,22 +1,22 @@
 """Tests for the ProtocolParser coordinator."""
 
-import pytest
 from pathlib import Path
+from unittest.mock import patch
 from uuid import UUID
-from unittest.mock import patch, MagicMock
 
-from backend.contracts.parser_output import ParsedProtocols, ParsedPacket
-from backend.contracts.enums import Protocol
-from backend.protocol_parser import ProtocolParser, parse_pcap, TsharkError
+import pytest
+
+from backend.contracts.parser_output import ParsedProtocols
+from backend.protocol_parser import ProtocolParser, TsharkError, parse_pcap
 
 from .fixtures import (
     DNS_QUERY_PACKET,
-    HTTP_REQUEST_PACKET,
     FTP_COMMAND_PACKET,
+    HTTP_REQUEST_PACKET,
+    ICMP_PACKET,
     SMTP_COMMAND_PACKET,
     TCP_PACKET,
     UDP_PACKET,
-    ICMP_PACKET,
 )
 
 TEST_PCAP_ID = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"

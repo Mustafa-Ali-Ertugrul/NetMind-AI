@@ -1,9 +1,8 @@
 """SMTP summary builder: per-IP message rates and failed auth."""
 
-from collections import defaultdict
 
-from backend.contracts.parser_output import ParsedSMTP
 from backend.contracts.features import SMTPFlow
+from backend.contracts.parser_output import ParsedSMTP
 
 
 class SMTPSummaryBuilder:
@@ -59,9 +58,8 @@ class SMTPSummaryBuilder:
         """Build sorted SMTPFlow list."""
         results = []
         for g in self._by_src.values():
-            duration = None
             if g["first_seen"] and g["last_seen"]:
-                duration = (g["last_seen"] - g["first_seen"]).total_seconds()
+                (g["last_seen"] - g["first_seen"]).total_seconds()
 
             avg_size = None
             if g["total_sizes"]:

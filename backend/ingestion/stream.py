@@ -11,7 +11,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from time import monotonic
 from typing import Any
 
@@ -173,7 +173,7 @@ class EventConsumer:
         logger.info("EventConsumer stop requested")
         try:
             await asyncio.wait_for(self._task, timeout=10.0)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning("EventConsumer did not stop within timeout; cancelling")
             self._task.cancel()
         self._task = None
@@ -188,7 +188,7 @@ class EventConsumer:
             try:
                 event = await asyncio.wait_for(self._stream.get(), timeout=timeout)
                 batch.append(event)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 pass  # flush on interval
 
             # Flush if batch full or interval expired

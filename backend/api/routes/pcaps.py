@@ -12,8 +12,6 @@ Upload flow:
 Rate limited to 10 requests/minute per IP.
 """
 
-from backend.api.rate_limit import limiter
-
 import hashlib
 import io
 import logging
@@ -27,6 +25,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.api.dependencies import get_db_session
+from backend.api.rate_limit import limiter
 from backend.api.schemas import (
     JobSummary,
     PcapDetailResponse,

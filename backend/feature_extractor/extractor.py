@@ -12,18 +12,17 @@ Single-pass orchestration:
 """
 
 import time
-from datetime import datetime, timezone
-from typing import Any
+from datetime import UTC, datetime
 
 from backend.contracts.features import AggregatedFeatures
 from backend.contracts.parser_output import ParsedProtocols
 
-from .constants import EXTRACTOR_VERSION
-from .flow_builder import FlowBuilder
 from .connection_profiles import ConnectionProfileBuilder
+from .constants import EXTRACTOR_VERSION
 from .dns_profiles import DNSProfileBuilder
-from .http_summary import HTTPSummaryBuilder
+from .flow_builder import FlowBuilder
 from .ftp_summary import FTPSummaryBuilder
+from .http_summary import HTTPSummaryBuilder
 from .smtp_summary import SMTPSummaryBuilder
 from .traffic_baseline import TrafficBaselineComputer
 
@@ -48,7 +47,7 @@ class FeatureExtractor:
         start_time = time.monotonic()
 
         pcap_id = parsed.pcap_id
-        pkt_count = len(parsed.packets)
+        len(parsed.packets)
 
         # 1. Time window from packets
         timestamps = [p.timestamp for p in parsed.packets if p.timestamp is not None]
@@ -57,7 +56,7 @@ class FeatureExtractor:
             time_window_end = max(timestamps)
             capture_duration = (time_window_end - time_window_start).total_seconds()
         else:
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             time_window_start = now
             time_window_end = now
             capture_duration = 0.0

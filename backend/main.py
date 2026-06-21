@@ -7,7 +7,6 @@ import logging
 
 import structlog
 
-from backend.api.app import app
 from backend.config import get_settings
 
 

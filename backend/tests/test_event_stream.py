@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import pytest
 
 from backend.ingestion.event import FlowEvent, RawEvent
-from backend.ingestion.stream import EventConsumer, EventStream, StreamMetrics
+from backend.ingestion.stream import EventConsumer, EventStream
 
 
 class TestRawEvent:

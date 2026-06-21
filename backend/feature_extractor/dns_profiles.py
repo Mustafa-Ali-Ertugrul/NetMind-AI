@@ -6,11 +6,10 @@ Shannon entropy of subdomain labels, and TTL values.
 
 import math
 import re
-from collections import defaultdict
 from datetime import datetime
 
-from backend.contracts.parser_output import ParsedDNS
 from backend.contracts.features import DNSProfile
+from backend.contracts.parser_output import ParsedDNS
 
 BASE64_CHARS_RE = re.compile(r"^[A-Za-z0-9+/=]+$")
 

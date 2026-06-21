@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -44,7 +44,7 @@ class ReportWriter:
         report: dict[str, Any] = {
             "pcap_path": str(pcap_path),
             "pcap_stem": stem,
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
             "pcap_size_bytes": pcap_size_bytes,
             "packet_count": packet_count,
             "ground_truth": {

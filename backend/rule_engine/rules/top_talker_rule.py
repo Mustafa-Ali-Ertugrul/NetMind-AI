@@ -5,7 +5,6 @@ Flags individual flows that consume an outsized share of total traffic.
 
 from ipaddress import IPv4Address, IPv6Address
 
-from backend.contracts.enums import Confidence, Severity
 from backend.contracts.features import AggregatedFeatures
 from backend.contracts.findings import Evidence, Finding
 from backend.rule_engine.base_rule import BaseDetectionRule
@@ -72,8 +71,8 @@ class TopTalkerRule(BaseDetectionRule):
 
             risk = self._compute_risk_score(raw_score)
 
-            src_addr = IPv4Address(src_ip) if "." in src_ip else IPv6Address(src_ip)
-            dst_addr = IPv4Address(dst_ip) if "." in dst_ip else IPv6Address(dst_ip)
+            IPv4Address(src_ip) if "." in src_ip else IPv6Address(src_ip)
+            IPv4Address(dst_ip) if "." in dst_ip else IPv6Address(dst_ip)
 
             findings.append(
                 Finding(

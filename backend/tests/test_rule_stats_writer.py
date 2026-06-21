@@ -1,6 +1,5 @@
 """Tests for RuleStatsWriter — per-rule evaluation statistics."""
 
-from datetime import datetime, timezone
 from uuid import uuid4
 
 import pytest
@@ -39,9 +38,9 @@ class TestRuleStatsWriter:
 
     def test_evaluations_counter_increments(self, db_session):
         writer = RuleStatsWriter(db_session)
-        writer.record_evaluation("NET-001", triggered=False).count
-        writer.record_evaluation("NET-001", triggered=False).count
-        writer.record_evaluation("NET-001", triggered=False).count
+        writer.record_evaluation("NET-001", triggered=False)
+        writer.record_evaluation("NET-001", triggered=False)
+        writer.record_evaluation("NET-001", triggered=False)
         row = db_session.query(RuleStats).first()
         assert row.evaluations == 3
 

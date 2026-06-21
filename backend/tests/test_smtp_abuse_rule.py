@@ -1,9 +1,8 @@
 """Tests for SMTPAbuseRule."""
 
-from datetime import datetime, timezone
-from uuid import uuid4
-
+from datetime import UTC, datetime
 from ipaddress import IPv4Address
+from uuid import uuid4
 
 from backend.contracts.enums import Severity
 from backend.contracts.features import AggregatedFeatures, SMTPFlow, TrafficBaseline
@@ -26,7 +25,7 @@ def _make_baseline() -> TrafficBaseline:
 def _make_features(
     smtp_flows: list[SMTPFlow] | None = None,
 ) -> AggregatedFeatures:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return AggregatedFeatures(
         pcap_id=uuid4(),
         capture_duration_seconds=10.0,

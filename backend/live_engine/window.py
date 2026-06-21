@@ -32,7 +32,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections import deque
-from collections.abc import Awaitable, Callable
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from time import monotonic
 from typing import Any
@@ -210,7 +210,7 @@ class SlidingWindow:
         self._stop_event.set()
         try:
             await asyncio.wait_for(self._task, timeout=5.0)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning("SlidingWindow task did not stop within timeout; cancelling")
             self._task.cancel()
         self._task = None

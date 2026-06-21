@@ -14,6 +14,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from httpx import AsyncClient
 
+from backend.storage.object_store import LocalObjectStore
+
 
 @pytest.mark.asyncio
 async def test_upload_rejects_bad_extension(client: AsyncClient, mock_db: AsyncMock) -> None:
@@ -75,7 +77,9 @@ async def test_upload_rejects_empty_content(client: AsyncClient, mock_db: AsyncM
 
 
 @pytest.mark.asyncio
-async def test_upload_accepts_valid_pcap(client: AsyncClient, mock_db: AsyncMock) -> None:
+async def test_upload_accepts_valid_pcap(
+    client: AsyncClient, mock_db: AsyncMock, tmp_path
+) -> None:
     """POST /pcaps with a valid PCAP file returns 201 (or 200 if dedup'ed).
 
     Because the DB is mocked, the route will attempt DB operations.
@@ -83,7 +87,6 @@ async def test_upload_accepts_valid_pcap(client: AsyncClient, mock_db: AsyncMock
     and the INSERT to succeed. This exercises the full validation chain.
     """
     # Mock the dedup query: SELECT from PcapFile WHERE sha256 = ...
-    from unittest.mock import MagicMock
 
     execute_result = MagicMock()
     execute_result.scalar_one_or_none.return_value = None
@@ -104,10 +107,15 @@ async def test_upload_accepts_valid_pcap(client: AsyncClient, mock_db: AsyncMock
     mock_task = MagicMock()
     mock_task.delay.return_value = None
 
-    with patch(
-        "backend.worker.tasks.pcap_analysis.analyze_pcap_task",
-        mock_task,
-        create=True,
+    object_store = LocalObjectStore(tmp_path / "pcaps")
+
+    with (
+        patch("backend.api.routes.pcaps.get_object_store", return_value=object_store),
+        patch(
+            "backend.worker.tasks.pcap_analysis.analyze_pcap_task",
+            mock_task,
+            create=True,
+        ),
     ):
         resp = await client.post(
             "/api/v1/pcaps",

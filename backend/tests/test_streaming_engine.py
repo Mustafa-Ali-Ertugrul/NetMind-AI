@@ -1,12 +1,10 @@
 """Tests for StreamingRuleEngine and streaming feature builder."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
-import pytest
-
 from backend.ingestion.event import FlowEvent
-from backend.live_engine.streaming_engine import StreamingRuleEngine, _StreamingFeatureBuilder
+from backend.live_engine.streaming_engine import StreamingRuleEngine
 
 
 def _make_event(
@@ -34,7 +32,7 @@ def _make_event(
         src_port=src_port,
         dst_port=dst_port,
         protocol=protocol,
-        ts=ts or datetime.now(timezone.utc),
+        ts=ts or datetime.now(UTC),
         flags=" ".join(sorted(tcp_flags)) if tcp_flags else None,
         payload_bytes=payload_bytes,
         packet_count=packet_count,
@@ -174,7 +172,7 @@ class TestStreamingRuleEngine:
 
     def test_baseline_computed(self):
         engine = StreamingRuleEngine()
-        for i in range(10):
+        for _i in range(10):
             engine.process_event(_make_event(payload_bytes=1000))
         features = engine._feature_builder.finalize()
         assert features.traffic_baseline.total_bytes > 0
@@ -182,7 +180,7 @@ class TestStreamingRuleEngine:
 
     def test_deviations_computed(self):
         engine = StreamingRuleEngine()
-        for i in range(20):
+        for _i in range(20):
             engine.process_event(_make_event(payload_bytes=5000))
         features = engine._feature_builder.finalize()
         # With 20 events of 5000 bytes each, top flows should exceed baseline

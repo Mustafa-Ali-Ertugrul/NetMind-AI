@@ -6,11 +6,11 @@ JSON output line-by-line for memory-efficient processing of large PCAP files.
 
 import json
 import os
-import subprocess
 import shutil
-from pathlib import Path
-from typing import Iterator, Optional
+import subprocess
+from collections.abc import Iterator
 from dataclasses import dataclass
+from pathlib import Path
 
 
 @dataclass
@@ -125,10 +125,10 @@ class TsharkWrapper:
                 major, minor, patch = 0, 0, 0
 
             return TsharkVersion(major, minor, patch, result.stdout.strip())
-        except subprocess.TimeoutExpired:
-            raise TsharkError("tshark -v timed out")
-        except FileNotFoundError:
-            raise TsharkError("tshark executable not found")
+        except subprocess.TimeoutExpired as exc:
+            raise TsharkError("tshark -v timed out") from exc
+        except FileNotFoundError as exc:
+            raise TsharkError("tshark executable not found") from exc
 
     def _build_command(
         self,
@@ -201,7 +201,7 @@ class TsharkWrapper:
             packet_buffer: list[str] = []
             in_packet = False
             brace_depth = 0
-            
+
             for line in process.stdout:
                 # Tshark uses 2-space indentation for packet objects in the array.
                 stripped = line.strip()
@@ -237,14 +237,14 @@ class TsharkWrapper:
                         stderr=stderr,
                     )
 
-        except subprocess.TimeoutExpired:
+        except subprocess.TimeoutExpired as exc:
             if process is not None:
                 process.kill()
-            raise TsharkError("tshark process timed_out")
+            raise TsharkError("tshark process timed_out") from exc
         except Exception as e:
             if isinstance(e, TsharkError):
                 raise
-            raise TsharkError(f"Failed to execute tshark: {e}")
+            raise TsharkError(f"Failed to execute tshark: {e}") from e
 
     def count_packets(self, pcap_path: str | Path) -> int:
         """Count total packets in PCAP file quickly."""
@@ -258,8 +258,8 @@ class TsharkWrapper:
                 )
             # Count non-empty lines
             return len([line for line in result.stdout.strip().split("\n") if line.strip()])
-        except subprocess.TimeoutExpired:
-            raise TsharkError("tshark packet count timed out")
+        except subprocess.TimeoutExpired as exc:
+            raise TsharkError("tshark packet count timed out") from exc
 
     def get_file_info(self, pcap_path: str | Path) -> dict:
         """Get basic file information using capinfos."""
@@ -279,7 +279,7 @@ class TsharkWrapper:
             if len(lines) >= 2:
                 headers = lines[0].split("\t")
                 values = lines[1].split("\t")
-                return dict(zip(headers, values))
+                return dict(zip(headers, values, strict=False))
             return {}
         except Exception:
             return self._get_file_info_tshark(pcap_path)

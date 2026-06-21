@@ -7,10 +7,10 @@ The actual upgrade/downgrade via Alembic CLI is validated separately in CI
 """
 
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import ModuleType
 from unittest.mock import MagicMock
-from uuid import uuid4, UUID
+from uuid import UUID, uuid4
 
 import pytest
 from sqlalchemy import create_engine, inspect
@@ -19,11 +19,10 @@ from sqlalchemy.orm import sessionmaker
 # SQLite type shims for INET / JSONB / PG_UUID are injected via conftest.py
 from backend.storage.database import Base
 from backend.storage.models import (
-    LiveAlert,
-    AlertEvent,
-    RuleStats,
-    RulePerformanceHistory,
     FlowSample,
+    LiveAlert,
+    RulePerformanceHistory,
+    RuleStats,
 )
 
 # Provide a minimal alembic.op stub so that migration files can be imported
@@ -100,8 +99,8 @@ class TestLiveAlertsTable:
             severity="high",
             confidence="medium",
             title="Test Alert",
-            timestamp_start=datetime.now(timezone.utc),
-            timestamp_end=datetime.now(timezone.utc),
+            timestamp_start=datetime.now(UTC),
+            timestamp_end=datetime.now(UTC),
         )
         db_session.add(alert)
         db_session.commit()
@@ -120,8 +119,8 @@ class TestLiveAlertsTable:
             confidence="high",
             title="JSONB Test",
             evidence=evidence,
-            timestamp_start=datetime.now(timezone.utc),
-            timestamp_end=datetime.now(timezone.utc),
+            timestamp_start=datetime.now(UTC),
+            timestamp_end=datetime.now(UTC),
         )
         db_session.add(alert)
         db_session.commit()
@@ -232,7 +231,7 @@ class TestRulePerformanceHistoryTable:
         assert cols == expected
 
     def test_defaults(self, db_session):
-        h = RulePerformanceHistory(rule_id="NET-001", bucket_start=datetime.now(timezone.utc))
+        h = RulePerformanceHistory(rule_id="NET-001", bucket_start=datetime.now(UTC))
         db_session.add(h)
         db_session.commit()
         row = db_session.query(RulePerformanceHistory).first()

@@ -11,7 +11,6 @@ from ipaddress import IPv4Address, IPv6Address
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
-    JSON,
     BigInteger,
     CheckConstraint,
     DateTime,
@@ -22,7 +21,8 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy.dialects.postgresql import INET, JSONB, UUID as PG_UUID
+from sqlalchemy.dialects.postgresql import INET, JSONB
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base

@@ -1,16 +1,16 @@
 """End-to-end tests for the FeatureExtractor orchestrator."""
 
-import pytest
 from uuid import UUID
 
-from backend.contracts.parser_output import ParsedProtocols
 from backend.contracts.enums import Protocol
+from backend.contracts.parser_output import ParsedProtocols
 from backend.feature_extractor import FeatureExtractor, extract_features
+
 from .fixtures import (
-    make_parsed_packet,
     make_parsed_dns,
-    make_parsed_http,
     make_parsed_ftp,
+    make_parsed_http,
+    make_parsed_packet,
     make_parsed_smtp,
 )
 
